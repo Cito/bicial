@@ -235,7 +235,7 @@ function renderCFTable(count) {
                         playBeep(afs[idx], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
                     }
                     i++;
-                    setTimeout(playNext, duration * 1000 + 50);
+                    setTimeout(playNext, duration * 1000);
                 }
                 playNext();
             } else if (type === 'cf-all' || type === 'af-all' || type === 'cfaf-all') {
@@ -248,7 +248,7 @@ function renderCFTable(count) {
                         if (i >= checked.length) return;
                         playBeep(cfs[checked[i]], ciSide, { volume: cfVolume, duration });
                         i++;
-                        setTimeout(playNext, duration * 1000 + 50);
+                        setTimeout(playNext, duration * 1000 * 1.25);
                     }
                     playNext();
                 } else if (type === 'af-all') {
@@ -258,7 +258,7 @@ function renderCFTable(count) {
                         if (i >= checked.length) return;
                         playBeep(afs[checked[i]], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
                         i++;
-                        setTimeout(playNext, duration * 1000 + 50);
+                        setTimeout(playNext, duration * 1000 * 1.25);
                     }
                     playNext();
                 } else if (type === 'cfaf-all') {
@@ -267,19 +267,19 @@ function renderCFTable(count) {
                     function playCFNext() {
                         if (i >= checked.length) {
                             // After cf sequence, wait for one beep duration, then start af sequence
-                            setTimeout(playAFNext, duration * 1000 + 50);
+                            setTimeout(playAFNext, duration * 1000 * 1.25);
                             return;
                         }
                         playBeep(cfs[checked[i]], ciSide, { volume: cfVolume, duration });
                         i++;
-                        setTimeout(playCFNext, duration * 1000 + 50);
+                        setTimeout(playCFNext, duration * 1000 * 1.25);
                     }
                     let j = 0;
                     function playAFNext() {
                         if (j >= checked.length) return;
                         playBeep(afs[checked[j]], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
                         j++;
-                        setTimeout(playAFNext, duration * 1000 + 50);
+                        setTimeout(playAFNext, duration * 1000 * 1.25);
                     }
                     playCFNext();
                 }
