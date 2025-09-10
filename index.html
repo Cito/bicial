@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binaural CI Alignment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(120deg, #e0eafc 0%, #cfdef3 100%);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: #2d3e50;
+            color: #fff;
+            padding: 2rem 0 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(44,62,80,0.08);
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        h2 {
+            margin-top: 0.5rem;
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: #b8c6db;
+        }
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(44,62,80,0.12);
+            padding: 2rem 2.5rem;
+            max-width: 480px;
+            width: 100%;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        .btn {
+            background: linear-gradient(90deg, #36d1c4 0%, #5b86e5 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: linear-gradient(90deg, #5b86e5 0%, #36d1c4 100%);
+        }
+        footer {
+            text-align: center;
+            padding: 1rem 0;
+            color: #2d3e50;
+            font-size: 0.9rem;
+            background: #f7fafd;
+            border-top: 1px solid #e0eafc;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Binaural CI Alignment</h1>
+        <h2>Align the center frequencies of your cochlear implant with your other ear</h2>
+    </header>
+    <main>
+        <div class="card">
+            <div style="margin-bottom:1.2rem;">
+                <label for="ciSide" style="font-weight:600;">CI side:</label>
+                <select id="ciSide" style="margin-left:1rem; padding:0.4rem 1rem; border-radius:6px; font-size:1rem;">
+                    <option value="right">Right</option>
+                    <option value="left">Left</option>
+                </select>
+            </div>
+            <div style="margin: 1.5rem 0;">
+                <label for="electrodeCount" style="font-weight:600;">Number of electrodes:</label>
+                <select id="electrodeCount" style="margin-left:1rem; padding:0.4rem 1rem; border-radius:6px; font-size:1rem;">
+                    <option value="12">12</option>
+                    <option value="16">16</option>
+                    <option value="22">22</option>
+                </select>
+            </div>
+            <div id="cfTableContainer" style="margin:2rem 0;"></div>
+        </div>
+    </main>
+    <footer>
+        &copy; 2025 Christoph Zwerschke
+    </footer>
+    <script src="main.js"></script>
+</body>
+</html>
