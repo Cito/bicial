@@ -133,7 +133,20 @@ function renderCFTable(count) {
         '<th style="text-align:center;padding:0.5rem;">cf</th>' +
         '<th style="text-align:center;padding:0.5rem;">af</th>' +
         '<th style="text-align:center;padding:0.5rem;">cf/af</th>' +
+        '<th style="text-align:center;padding:0.5rem;">' +
+            '<input type="checkbox" id="master-check" style="margin:0;vertical-align:middle;" title="Select/unselect all" />' +
+        '</th>' +
         '</tr></thead><tbody>';
+    // Master checkbox event handler
+    setTimeout(() => {
+        const masterCheck = document.getElementById('master-check');
+        if (masterCheck) {
+            masterCheck.addEventListener('change', function() {
+                const checks = container.querySelectorAll('.row-check');
+                checks.forEach(cb => { cb.checked = masterCheck.checked; });
+            });
+        }
+    }, 0);
     for (let i = 0; i < cfs.length; i++) {
         html += `<tr><td style="text-align:center;">${i+1}</td>` +
             `<td style="text-align:center;">
@@ -150,8 +163,24 @@ function renderCFTable(count) {
             </td>` +
             `<td style="text-align:center;">
                 <button class="beep-btn" data-type="cfaf" data-idx="${i}" title="Play alternating cf/af beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔊</button>
+            </td>` +
+            `<td style="text-align:center;">
+                <input type="checkbox" class="row-check" data-idx="${i}" />
             </td></tr>`;
     }
+    // Add final row with only the three button columns
+    html += `<tr>` +
+        `<td></td><td></td><td></td>` +
+        `<td style="text-align:center;">
+            <button class="beep-btn" data-type="cf-all" title="Play checked cf beeps" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#e0eafc;cursor:pointer;">🔉</button>
+        </td>` +
+        `<td style="text-align:center;">
+            <button class="beep-btn" data-type="af-all" title="Play checked af beeps" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#e0eafc;cursor:pointer;">🔉</button>
+        </td>` +
+        `<td style="text-align:center;">
+            <button class="beep-btn" data-type="cfaf-all" title="Play checked cf/af beeps alternating" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#e0eafc;cursor:pointer;">🔊</button>
+        </td>` +
+        `<td></td></tr>`;
     html += '</tbody></table>';
     container.innerHTML = html;
     // Add event listeners for cf inputs
@@ -178,7 +207,7 @@ function renderCFTable(count) {
     // Add event listeners for beep buttons
     Array.from(container.querySelectorAll('.beep-btn')).forEach(btn => {
         btn.addEventListener('click', function() {
-            const idx = Number(btn.dataset.idx);
+            const idx = btn.dataset.idx !== undefined ? Number(btn.dataset.idx) : null;
             const type = btn.dataset.type;
             const ciSide = window.getStoredCISide();
             let cfVolume = 0.75, afVolume = 0.75;
@@ -186,17 +215,17 @@ function renderCFTable(count) {
             if (vcf) cfVolume = parseInt(vcf, 10) / 100;
             const vaf = localStorage.getItem('afVolume');
             if (vaf) afVolume = parseInt(vaf, 10) / 100;
+            let duration = localStorage.getItem('beepDuration');
+            duration = duration ? parseInt(duration, 10) / 1000 : 0.15;
+            let reps = 3;
+            const repInput = document.getElementById('beepReps');
+            if (repInput && repInput.value) reps = Math.max(1, parseInt(repInput.value));
             if (type === 'cf') {
                 playBeep(cfs[idx], ciSide, { volume: cfVolume });
             } else if (type === 'af') {
                 playBeep(afs[idx], ciSide === 'left' ? 'right' : 'left', { volume: afVolume });
             } else if (type === 'cfaf') {
                 // Alternating cf/af beep
-                let reps = 3;
-                const repInput = document.getElementById('beepReps');
-                if (repInput && repInput.value) reps = Math.max(1, parseInt(repInput.value));
-                let duration = localStorage.getItem('beepDuration');
-                duration = duration ? parseInt(duration, 10) / 1000 : 0.15;
                 let i = 0;
                 function playNext() {
                     if (i >= reps * 2) return;
@@ -209,6 +238,51 @@ function renderCFTable(count) {
                     setTimeout(playNext, duration * 1000 + 50);
                 }
                 playNext();
+            } else if (type === 'cf-all' || type === 'af-all' || type === 'cfaf-all') {
+                // Get checked indices
+                const checked = Array.from(container.querySelectorAll('.row-check:checked')).map(cb => Number(cb.dataset.idx));
+                if (type === 'cf-all') {
+                    // Play checked cf frequencies in order
+                    let i = 0;
+                    function playNext() {
+                        if (i >= checked.length) return;
+                        playBeep(cfs[checked[i]], ciSide, { volume: cfVolume, duration });
+                        i++;
+                        setTimeout(playNext, duration * 1000 + 50);
+                    }
+                    playNext();
+                } else if (type === 'af-all') {
+                    // Play checked af frequencies in order
+                    let i = 0;
+                    function playNext() {
+                        if (i >= checked.length) return;
+                        playBeep(afs[checked[i]], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
+                        i++;
+                        setTimeout(playNext, duration * 1000 + 50);
+                    }
+                    playNext();
+                } else if (type === 'cfaf-all') {
+                    // Play checked cf frequencies in order, then checked af frequencies in order, with a gap between
+                    let i = 0;
+                    function playCFNext() {
+                        if (i >= checked.length) {
+                            // After cf sequence, wait for one beep duration, then start af sequence
+                            setTimeout(playAFNext, duration * 1000 + 50);
+                            return;
+                        }
+                        playBeep(cfs[checked[i]], ciSide, { volume: cfVolume, duration });
+                        i++;
+                        setTimeout(playCFNext, duration * 1000 + 50);
+                    }
+                    let j = 0;
+                    function playAFNext() {
+                        if (j >= checked.length) return;
+                        playBeep(afs[checked[j]], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
+                        j++;
+                        setTimeout(playAFNext, duration * 1000 + 50);
+                    }
+                    playCFNext();
+                }
             }
         });
     });
