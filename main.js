@@ -125,13 +125,14 @@ function renderCFTable(count) {
     if (!container) return;
     const cfs = getStoredCFs(count);
     const afs = getStoredAFs(count);
-    let html = '<table style="width:100%;border-collapse:collapse;">';
+    let html = '<table class="main" style="margin:2px auto;border-collapse:collapse;">';
     html += '<thead><tr>' +
         '<th style="text-align:center;padding:0.5rem;">#</th>' +
         '<th style="text-align:center;padding:0.5rem;" title="center frequency">cf</th>' +
         '<th style="text-align:center;padding:0.5rem;" title="alignment frequency">af</th>' +
         '<th style="text-align:center;padding:0.5rem;">cf</th>' +
         '<th style="text-align:center;padding:0.5rem;">af</th>' +
+        '<th style="text-align:center;padding:0.5rem;">cf/af</th>' +
         '</tr></thead><tbody>';
     for (let i = 0; i < cfs.length; i++) {
         html += `<tr><td style="text-align:center;">${i+1}</td>` +
@@ -146,6 +147,9 @@ function renderCFTable(count) {
             </td>` +
             `<td style="text-align:center;">
                 <button class="beep-btn" data-type="af" data-idx="${i}" title="Play af beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔉</button>
+            </td>` +
+            `<td style="text-align:center;">
+                <button class="beep-btn" data-type="cfaf" data-idx="${i}" title="Play alternating cf/af beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔊</button>
             </td></tr>`;
     }
     html += '</tbody></table>';
@@ -176,9 +180,36 @@ function renderCFTable(count) {
         btn.addEventListener('click', function() {
             const idx = Number(btn.dataset.idx);
             const type = btn.dataset.type;
-            const freq = type === 'cf' ? cfs[idx] : afs[idx];
             const ciSide = window.getStoredCISide();
-            playBeep(freq, type === 'cf' ? ciSide : (ciSide === 'left' ? 'right' : 'left'));
+            let cfVolume = 0.75, afVolume = 0.75;
+            const vcf = localStorage.getItem('cfVolume');
+            if (vcf) cfVolume = parseInt(vcf, 10) / 100;
+            const vaf = localStorage.getItem('afVolume');
+            if (vaf) afVolume = parseInt(vaf, 10) / 100;
+            if (type === 'cf') {
+                playBeep(cfs[idx], ciSide, { volume: cfVolume });
+            } else if (type === 'af') {
+                playBeep(afs[idx], ciSide === 'left' ? 'right' : 'left', { volume: afVolume });
+            } else if (type === 'cfaf') {
+                // Alternating cf/af beep
+                let reps = 3;
+                const repInput = document.getElementById('beepReps');
+                if (repInput && repInput.value) reps = Math.max(1, parseInt(repInput.value));
+                let duration = localStorage.getItem('beepDuration');
+                duration = duration ? parseInt(duration, 10) / 1000 : 0.15;
+                let i = 0;
+                function playNext() {
+                    if (i >= reps * 2) return;
+                    if (i % 2 === 0) {
+                        playBeep(cfs[idx], ciSide, { volume: cfVolume, duration });
+                    } else {
+                        playBeep(afs[idx], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
+                    }
+                    i++;
+                    setTimeout(playNext, duration * 1000 + 50);
+                }
+                playNext();
+            }
         });
     });
 }
@@ -196,7 +227,11 @@ function playBeep(frequency, side, options = {}) {
     osc.type = type;
     osc.frequency.value = frequency;
     const gain = ctx.createGain();
-    gain.gain.value = 0.2;
+    let volume = 0.75;
+    if (options.volume !== undefined) {
+        volume = options.volume;
+    }
+    gain.gain.value = volume;
     // Stereo panning
     const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     if (pan) {
@@ -215,6 +250,23 @@ function playBeep(frequency, side, options = {}) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Volume sliders
+    const cfSlider = document.getElementById('cfVolume');
+    const afSlider = document.getElementById('afVolume');
+    if (cfSlider) {
+        const stored = localStorage.getItem('cfVolume');
+        cfSlider.value = stored ? stored : '75';
+        cfSlider.addEventListener('input', function() {
+            localStorage.setItem('cfVolume', cfSlider.value);
+        });
+    }
+    if (afSlider) {
+        const stored = localStorage.getItem('afVolume');
+        afSlider.value = stored ? stored : '75';
+        afSlider.addEventListener('input', function() {
+            localStorage.setItem('afVolume', afSlider.value);
+        });
+    }
     // Beep duration input
     const beepInput = document.getElementById('beepDuration');
     if (beepInput) {
