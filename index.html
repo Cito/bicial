@@ -83,8 +83,8 @@
             <div style="margin-bottom:1.2rem;">
                 <label for="ciSide" style="font-weight:600;">CI side:</label>
                 <select id="ciSide" style="margin-left:1rem; padding:0.4rem 1rem; border-radius:6px; font-size:1rem;">
-                    <option value="right">Right</option>
-                    <option value="left">Left</option>
+                    <option value="right">right</option>
+                    <option value="left">left</option>
                 </select>
             </div>
             <div style="margin: 1.5rem 0;">
@@ -96,6 +96,21 @@
                 </select>
             </div>
             <div id="cfTableContainer" style="margin:2rem 0;"></div>
+                <div style="margin:1.5rem 0;">
+                    <label for="beepDuration" style="font-weight:600;">Beep duration (ms):</label>
+                    <input type="number" id="beepDuration" min="10" max="2000" step="10" style="margin-left:1rem; padding:0.4rem 0.5em; border-radius:6px; font-size:1rem; width:4em; text-align:right;" />
+                </div>
+            <div style="margin-top:2rem;">
+                <button class="btn" onclick="exportSettings()" style="margin-right:1em;display:inline-flex;align-items:center;gap:0.5em;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="17" width="18" height="4" rx="2"/><polyline points="7 13 12 18 17 13"/><line x1="12" y1="18" x2="12" y2="6"/></svg>
+                    Export Settings
+                </button>
+                <button class="btn" onclick="importSettings()" style="display:inline-flex;align-items:center;gap:0.5em;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="17" width="18" height="4" rx="2"/><polyline points="7 11 12 6 17 11"/><line x1="12" y1="6" x2="12" y2="18"/></svg>
+                    Import Settings
+                </button>
+                <input type="file" id="importFile" accept="application/json" style="display:none;" />
+            </div>
         </div>
     </main>
     <footer>
