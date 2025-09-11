@@ -96,6 +96,13 @@ body {
 .cf-table input[type="number"] { width: 9ch; text-align: right; }
 .cf-table .btn-icon { width: 2.2em; height: 2.2em; border-radius: 8px; border: 1px solid var(--border); background: #0a0f1d; color: var(--text); cursor: pointer; }
 .cf-table .btn-icon:hover { border-color: #2a3a5a; }
+.cf-table .btn-icon:disabled {
+    opacity: 0.45;
+    color: var(--muted);
+    cursor: not-allowed;
+    filter: grayscale(0.6);
+    pointer-events: none;
+}
 .cf-table .btn-icon.is-on { background: rgba(96,165,250,0.2); border-color: #3b82f6; }
 .cf-table .lr { font-size: 1.05rem; }
 .cf-table .single { font-size: 1rem; }

@@ -51,9 +51,9 @@ The table should also have a bottom row with batch control buttons to play check
 
 Below the table there should be inputs for beep duration (ms), and number of repetitions (reps) for alternating beeps (again, both controls in one row).
 
-Also below the table there should be two global volume sliders (0 to 100) for L and R .
+Also below the table there should be two global volume sliders (0 to 100) for L and R.
 
-And finally, buttons for exporting and importing the entire settings as JSON file
+And finally, buttons for exporting and importing the entire settings as JSON file.
 
 The buttons should have nice icons symbolizing their function. The toggle buttons should have a visual state (background color change).
 

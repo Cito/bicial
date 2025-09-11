@@ -131,7 +131,8 @@
     }
 
     function doExport() {
-        const data = {
+        // Gather top-level settings
+        const settings = {
             ciSide: localStorage.getItem(KEYS.ciSide) || 'R',
             electrodeCount: localStorage.getItem(KEYS.electrodeCount) || '12',
             volumeL: localStorage.getItem(KEYS.volumeL) || '75',
@@ -139,6 +140,43 @@
             beepDuration: localStorage.getItem(KEYS.beepDuration) || '500',
             beepReps: localStorage.getItem(KEYS.beepReps) || '3',
         };
+
+        // Gather arrays from localStorage for all counts present
+        const arrays = { fL: {}, fR: {}, adjL: {}, adjR: {}, selected: {} };
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (!k) continue;
+            const put = (bucket, count, val) => { if (count) bucket[count] = val; };
+            try {
+                if (k.startsWith(KEYS.fLPrefix)) {
+                    const count = k.slice(KEYS.fLPrefix.length);
+                    put(arrays.fL, count, JSON.parse(localStorage.getItem(k)));
+                } else if (k.startsWith(KEYS.fRPrefix)) {
+                    const count = k.slice(KEYS.fRPrefix.length);
+                    put(arrays.fR, count, JSON.parse(localStorage.getItem(k)));
+                } else if (k.startsWith(KEYS.adjLPrefix)) {
+                    const count = k.slice(KEYS.adjLPrefix.length);
+                    put(arrays.adjL, count, JSON.parse(localStorage.getItem(k)));
+                } else if (k.startsWith(KEYS.adjRPrefix)) {
+                    const count = k.slice(KEYS.adjRPrefix.length);
+                    put(arrays.adjR, count, JSON.parse(localStorage.getItem(k)));
+                } else if (k.startsWith(KEYS.selectedPrefix)) {
+                    const count = k.slice(KEYS.selectedPrefix.length);
+                    put(arrays.selected, count, JSON.parse(localStorage.getItem(k)));
+                }
+            } catch {
+                // ignore malformed entries
+            }
+        }
+
+        const data = {
+            app: 'bicial',
+            version: 1,
+            savedAt: new Date().toISOString(),
+            settings,
+            arrays,
+        };
+
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -157,21 +195,43 @@
         reader.onload = () => {
             try {
                 const data = JSON.parse(reader.result);
-                if (data.ciSide) localStorage.setItem(KEYS.ciSide, data.ciSide);
-                if (data.electrodeCount) localStorage.setItem(KEYS.electrodeCount, data.electrodeCount);
-                if (data.volumeL) localStorage.setItem(KEYS.volumeL, data.volumeL);
-                if (data.volumeR) localStorage.setItem(KEYS.volumeR, data.volumeR);
-                if (data.beepDuration) localStorage.setItem(KEYS.beepDuration, data.beepDuration);
-                if (data.beepReps) localStorage.setItem(KEYS.beepReps, data.beepReps);
+
+                const s = data.settings || {};
+                if (s.ciSide) localStorage.setItem(KEYS.ciSide, s.ciSide);
+                if (s.electrodeCount) localStorage.setItem(KEYS.electrodeCount, String(s.electrodeCount));
+                if (s.volumeL != null) localStorage.setItem(KEYS.volumeL, String(s.volumeL));
+                if (s.volumeR != null) localStorage.setItem(KEYS.volumeR, String(s.volumeR));
+                if (s.beepDuration != null) localStorage.setItem(KEYS.beepDuration, String(s.beepDuration));
+                if (s.beepReps != null) localStorage.setItem(KEYS.beepReps, String(s.beepReps));
+
+                const a = data.arrays || {};
+                const writeBucket = (bucket, prefix) => {
+                    if (!bucket) return;
+                    Object.keys(bucket).forEach(count => {
+                        try { localStorage.setItem(prefix + count, JSON.stringify(bucket[count])); } catch {}
+                    });
+                };
+                writeBucket(a.fL, KEYS.fLPrefix);
+                writeBucket(a.fR, KEYS.fRPrefix);
+                writeBucket(a.adjL, KEYS.adjLPrefix);
+                writeBucket(a.adjR, KEYS.adjRPrefix);
+                writeBucket(a.selected, KEYS.selectedPrefix);
+
                 // reflect imported settings in UI
                 const sideRadios = document.querySelectorAll('input[name="ciSide"]');
                 sideRadios.forEach(r => r.checked = r.value === (localStorage.getItem(KEYS.ciSide) || 'R'));
                 const countRadios = document.querySelectorAll('input[name="electrodeCount"]');
                 countRadios.forEach(r => r.checked = r.value === (localStorage.getItem(KEYS.electrodeCount) || '12'));
+                const volL = document.getElementById('volumeL'); if (volL) volL.value = localStorage.getItem(KEYS.volumeL) || '75';
+                const volR = document.getElementById('volumeR'); if (volR) volR.value = localStorage.getItem(KEYS.volumeR) || '75';
+                const dur = document.getElementById('beepDuration'); if (dur) dur.value = localStorage.getItem(KEYS.beepDuration) || '500';
+                const reps = document.getElementById('beepReps'); if (reps) reps.value = localStorage.getItem(KEYS.beepReps) || '3';
                 renderTable();
             } catch (err) {
                 alert('Import failed: invalid file.');
             }
+            // allow re-importing the same file name
+            try { e.target.value = ''; } catch {}
         };
         reader.readAsText(file);
     }
@@ -184,6 +244,8 @@
         if (!container) return;
     // stop any active L+R rows before re-render to avoid orphan audio
     stopAllBoth();
+    // cancel any batch play sequences
+    cancelAllBatches();
     const count = Number(localStorage.getItem(KEYS.electrodeCount) || '12');
     const ciSide = localStorage.getItem(KEYS.ciSide) || 'R';
         const fL = getF(count, 'L');
@@ -254,6 +316,7 @@
                             if (master.checked) set.add(Number(cb.dataset.i));
                         });
                         setSelected(count, set);
+                        updateBatchButtonsDisabled(container);
                     });
                 }
             }
@@ -308,6 +371,7 @@
                 const idx = Number(cb.dataset.i);
                 if (cb.checked) set.add(idx); else set.delete(idx);
                 setSelected(c, set);
+                updateBatchButtonsDisabled(container);
             });
         });
 
@@ -316,6 +380,20 @@
             container.addEventListener('click', onTableClick);
             container.dataset.bound = '1';
         }
+
+        // Set initial disabled state for batch buttons
+        updateBatchButtonsDisabled(container);
+    }
+
+    function updateBatchButtonsDisabled(container) {
+        const { sel } = getSelectedSorted();
+        const none = sel.length === 0;
+        const btnL = container.querySelector('button[data-act="play-all"][data-ear="L"]');
+        const btnR = container.querySelector('button[data-act="play-all"][data-ear="R"]');
+        const btnAlt = container.querySelector('button[data-act="alt-all"]');
+        if (btnL) btnL.disabled = none || !!batchTimers.L;
+        if (btnR) btnR.disabled = none || !!batchTimers.R;
+        if (btnAlt) btnAlt.disabled = none || !!batchTimers.ALT;
     }
 
     // ---- audio: single beep L/R ----
@@ -336,7 +414,7 @@
         const count = Number(localStorage.getItem(KEYS.electrodeCount) || '12');
         const base = (ear === 'L'
             ? Number(localStorage.getItem(KEYS.volumeL) || '75')
-            : Number(localStorage.getItem(KEYS.volumeR) || '50')) / 100;
+            : Number(localStorage.getItem(KEYS.volumeR) || '75')) / 100;
         const adjArr = getAdj(count, ear);
         const adj = Number(adjArr[i] || 0); // -50..50
         const factor = 1 + (adj / 50); // 0..2
@@ -483,6 +561,12 @@
             const i = Number(btn.dataset.i);
             if (!Number.isFinite(i)) return;
             if (bothPlayers.has(i)) stopBoth(i, btn); else startBoth(i, btn);
+        } else if (act === 'play-all') {
+            const ear = btn.dataset.ear;
+            if (ear !== 'L' && ear !== 'R') return;
+            startBatchSingle(ear, btn);
+        } else if (act === 'alt-all') {
+            startBatchAlt(btn);
         }
         // other actions will be implemented later
     }
@@ -513,6 +597,81 @@
             button.classList.remove('is-on');
             button.disabled = false;
         }, total + 10));
+    }
+
+    // ---- batch sequential playback (bottom row) ----
+    const batchTimers = { L: null, R: null, ALT: null };
+
+    function getSelectedSorted() {
+        const count = Number(localStorage.getItem(KEYS.electrodeCount) || '12');
+        const sel = [...getSelected(count)];
+        sel.sort((a,b) => a - b);
+        return { count, sel };
+    }
+
+    function startBatchSingle(ear, btn) {
+        if (batchTimers[ear]) return; // already running for this ear
+        const { count, sel } = getSelectedSorted();
+        if (!sel.length) return;
+        const dur = Math.max(10, Math.floor(Number(localStorage.getItem(KEYS.beepDuration) || '1000')));
+        const ids = [];
+        batchTimers[ear] = { ids, btn };
+        btn.classList.add('is-on');
+        btn.disabled = true;
+        sel.forEach((rowIdx, k) => {
+            const t = k * (2 * dur);
+            ids.push(setTimeout(() => playSingleBeep(ear, rowIdx), t));
+        });
+        const total = (sel.length - 1) * (2 * dur) + dur;
+        ids.push(setTimeout(() => finishBatch(ear), total + 10));
+    }
+
+    function startBatchAlt(btn) {
+        if (batchTimers.ALT) return;
+        const { count, sel } = getSelectedSorted();
+        if (!sel.length) return;
+        const dur = Math.max(10, Math.floor(Number(localStorage.getItem(KEYS.beepDuration) || '1000')));
+        const reps = Math.max(1, Math.floor(Number(localStorage.getItem(KEYS.beepReps) || '3')));
+        const perRow = 4 * dur; // time budget per row for previous model; keep for total calc
+        const perRep = sel.length * perRow + 0.5 * dur; // overall rep length incl. 1.5d gap between reps
+        const ids = [];
+        batchTimers.ALT = { ids, btn };
+        btn.classList.add('is-on');
+        btn.disabled = true;
+        for (let r = 0; r < reps; r++) {
+            const repBase = r * perRep;
+            // First: all L beeps top-to-bottom
+            sel.forEach((rowIdx, j) => {
+                const t = repBase + j * (2 * dur);
+                ids.push(setTimeout(() => playSingleBeep('L', rowIdx), t));
+            });
+            // After finishing last L and its pause, start all R beeps
+            const rBlockBase = repBase + sel.length * (2 * dur);
+            sel.forEach((rowIdx, j) => {
+                const t = rBlockBase + j * (2 * dur);
+                ids.push(setTimeout(() => playSingleBeep('R', rowIdx), t));
+            });
+        }
+        const total = (reps - 1) * perRep + (sel.length - 1) * perRow + (2 * dur) + dur; // last R end time
+        ids.push(setTimeout(() => finishBatch('ALT'), total + 10));
+    }
+
+    function finishBatch(kind) {
+        const slot = batchTimers[kind];
+        if (!slot) return;
+        slot.ids.forEach(id => clearTimeout(id));
+        if (slot.btn) { slot.btn.classList.remove('is-on'); slot.btn.disabled = false; }
+        batchTimers[kind] = null;
+    }
+
+    function cancelAllBatches() {
+        ['L','R','ALT'].forEach(k => {
+            const slot = batchTimers[k];
+            if (!slot) return;
+            slot.ids.forEach(id => clearTimeout(id));
+            if (slot.btn) { slot.btn.classList.remove('is-on'); slot.btn.disabled = false; }
+            batchTimers[k] = null;
+        });
     }
 })();
 
