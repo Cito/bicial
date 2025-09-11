@@ -104,12 +104,12 @@
         }
         const volR = $('#volumeR');
         if (volR) {
-            volR.value = localStorage.getItem(KEYS.volumeR) || '50';
+            volR.value = localStorage.getItem(KEYS.volumeR) || '75';
             volR.addEventListener('input', () => localStorage.setItem(KEYS.volumeR, volR.value));
         }
         const dur = $('#beepDuration');
         if (dur) {
-            dur.value = localStorage.getItem(KEYS.beepDuration) || '1000';
+            dur.value = localStorage.getItem(KEYS.beepDuration) || '500';
             dur.addEventListener('change', () => localStorage.setItem(KEYS.beepDuration, dur.value));
         }
         const reps = $('#beepReps');
@@ -135,8 +135,8 @@
             ciSide: localStorage.getItem(KEYS.ciSide) || 'R',
             electrodeCount: localStorage.getItem(KEYS.electrodeCount) || '12',
             volumeL: localStorage.getItem(KEYS.volumeL) || '75',
-            volumeR: localStorage.getItem(KEYS.volumeR) || '50',
-            beepDuration: localStorage.getItem(KEYS.beepDuration) || '1000',
+            volumeR: localStorage.getItem(KEYS.volumeR) || '75',
+            beepDuration: localStorage.getItem(KEYS.beepDuration) || '500',
             beepReps: localStorage.getItem(KEYS.beepReps) || '3',
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -165,7 +165,7 @@
                 if (data.beepReps) localStorage.setItem(KEYS.beepReps, data.beepReps);
                 // reflect imported settings in UI
                 const sideRadios = document.querySelectorAll('input[name="ciSide"]');
-                sideRadios.forEach(r => r.checked = r.value === (localStorage.getItem(KEYS.ciSide) || 'right'));
+                sideRadios.forEach(r => r.checked = r.value === (localStorage.getItem(KEYS.ciSide) || 'R'));
                 const countRadios = document.querySelectorAll('input[name="electrodeCount"]');
                 countRadios.forEach(r => r.checked = r.value === (localStorage.getItem(KEYS.electrodeCount) || '12'));
                 renderTable();
@@ -261,20 +261,23 @@
         container.querySelectorAll('.ear-input').forEach(inp => {
             inp.addEventListener('change', () => {
                 const i = Number(inp.dataset.i);
-                const ear = inp.dataset.ear; // L or R as displayed
+                const ear = inp.dataset.ear; // 'L' or 'R'
                 const val = Math.max(0, Math.round(Number(inp.value) || 0));
                 inp.value = val;
                 const otherEar = ear === 'L' ? 'R' : 'L';
                 const c = Number(localStorage.getItem(KEYS.electrodeCount) || '12');
-                const fL = getF(c, 'L'), fR = getF(c, 'R');
-                setF(c, ear, ear === 'L' ? fL : fR);
+                const left = getF(c, 'L');
+                const right = getF(c, 'R');
+                if (ear === 'L') left[i] = val; else right[i] = val;
                 const ciSide = localStorage.getItem(KEYS.ciSide) || 'R';
                 const isCiEar = ear === ciSide;
                 if (isCiEar) {
-                    setF(c, otherEar, ear === 'L' ? fR : fL);
+                    if (ear === 'L') right[i] = val; else left[i] = val;
                     const other = container.querySelector(`.ear-input[data-i="${i}"][data-ear="${otherEar}"]`);
                     if (other) other.value = String(val);
-                } 
+                }
+                setF(c, 'L', left);
+                setF(c, 'R', right);
             });
         });
         container.querySelectorAll('.adj').forEach(sl => {
@@ -305,6 +308,130 @@
                 setSelected(c, set);
             });
         });
+
+        // one-time event delegation for button clicks
+        if (!container.dataset.bound) {
+            container.addEventListener('click', onTableClick);
+            container.dataset.bound = '1';
+        }
+    }
+
+    // ---- audio: single beep L/R ----
+    let audioCtx = null;
+    function getAudioCtx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // resume if suspended (browser policy)
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+    }
+
+    function getDisplayedFreq(container, ear, i) {
+        const inp = container.querySelector(`.ear-input[data-ear="${ear}"][data-i="${i}"]`);
+        return Math.max(0, Math.round(Number(inp && inp.value || 0)));
+    }
+
+    function earGain(ear, i) {
+        const count = Number(localStorage.getItem(KEYS.electrodeCount) || '12');
+        const base = (ear === 'L'
+            ? Number(localStorage.getItem(KEYS.volumeL) || '75')
+            : Number(localStorage.getItem(KEYS.volumeR) || '50')) / 100;
+        const adjArr = getAdj(count, ear);
+        const adj = Number(adjArr[i] || 0); // -50..50
+        const factor = 1 + (adj / 50); // 0..2
+        const g = Math.max(0, Math.min(1, base * factor));
+        return g;
+    }
+
+    function playSingleBeep(ear, i) {
+        const container = document.getElementById('cfTableContainer');
+        if (!container) return;
+        const ctx = getAudioCtx();
+        const freq = getDisplayedFreq(container, ear, i);
+        const durMs = Math.max(10, Number(localStorage.getItem(KEYS.beepDuration) || '500'));
+        const dur = durMs / 1000;
+        const gainVal = earGain(ear, i);
+        const now = ctx.currentTime;
+
+        const osc = ctx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+
+        // Envelope
+        const env = ctx.createGain();
+        env.gain.setValueAtTime(0, now);
+        env.gain.linearRampToValueAtTime(gainVal, now + 0.01);
+        env.gain.setTargetAtTime(0, now + Math.max(0.02, dur - 0.02), 0.01);
+
+        if (ctx.createStereoPanner) {
+            const panner = ctx.createStereoPanner();
+            panner.pan.value = ear === 'L' ? -1 : 1;
+            osc.connect(env);
+            env.connect(panner);
+            panner.connect(ctx.destination);
+        } else {
+            // Fallback: split to channels via ChannelMerger
+            const gL = ctx.createGain();
+            const gR = ctx.createGain();
+            gL.gain.value = ear === 'L' ? 1 : 0;
+            gR.gain.value = ear === 'R' ? 1 : 0;
+            const merger = ctx.createChannelMerger(2);
+            osc.connect(env);
+            env.connect(gL);
+            env.connect(gR);
+            gL.connect(merger, 0, 0);
+            gR.connect(merger, 0, 1);
+            merger.connect(ctx.destination);
+        }
+
+        osc.start(now);
+        osc.stop(now + dur);
+        osc.onended = () => {
+            try { osc.disconnect(); } catch {}
+        };
+    }
+
+    function onTableClick(e) {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const act = btn.dataset.act;
+        if (act === 'play') {
+            const ear = btn.dataset.ear; // 'L' or 'R'
+            const i = Number(btn.dataset.i);
+            if (Number.isFinite(i) && (ear === 'L' || ear === 'R')) playSingleBeep(ear, i);
+        } else if (act === 'alt') {
+            const i = Number(btn.dataset.i);
+            if (!Number.isFinite(i)) return;
+            runAltSequence(btn, i);
+        }
+        // other actions will be implemented later
+    }
+
+    // ---- alternating L/R sequence ----
+    const altTimers = new Map(); // rowIndex -> [timeoutIds]
+    function runAltSequence(button, rowIndex) {
+        // guard against double-start
+        if (altTimers.has(rowIndex)) return;
+        const reps = Math.max(1, Math.floor(Number(localStorage.getItem(KEYS.beepReps) || '3')));
+        const durMs = Math.max(10, Math.floor(Number(localStorage.getItem(KEYS.beepDuration) || '500')));
+        const perRep = 4.5 * durMs; // L beep (dur), pause (dur), R beep (dur), inter-rep gap (1.5*dur)
+        const ids = [];
+        altTimers.set(rowIndex, ids);
+        button.classList.add('is-on');
+        button.disabled = true;
+
+        for (let r = 0; r < reps; r++) {
+            const base = r * perRep;
+            ids.push(setTimeout(() => playSingleBeep('L', rowIndex), base + 0));
+            ids.push(setTimeout(() => playSingleBeep('R', rowIndex), base + 2 * durMs));
+        }
+        const total = (reps - 1) * perRep + 3 * durMs; // last R beep finishes here
+        ids.push(setTimeout(() => {
+            // cleanup
+            ids.forEach(id => clearTimeout(id));
+            altTimers.delete(rowIndex);
+            button.classList.remove('is-on');
+            button.disabled = false;
+        }, total + 10));
     }
 })();
 
