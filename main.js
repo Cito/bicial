@@ -135,6 +135,7 @@ function renderCFTable(count) {
             '<th style="text-align:center;padding:0.5rem;">af</th>' +
             '<th style="text-align:center;padding:0.5rem;">cf</th>' +
             '<th style="text-align:center;padding:0.5rem;">af/cf</th>' +
+            '<th style="text-align:center;padding:0.5rem;">af+cf</th>' +
             '<th style="text-align:center;padding:0.5rem;">' +
                 '<input type="checkbox" id="master-check" style="margin:0;vertical-align:middle;" title="Select/unselect all" />' +
             '</th>' +
@@ -147,6 +148,7 @@ function renderCFTable(count) {
             '<th style="text-align:center;padding:0.5rem;">cf</th>' +
             '<th style="text-align:center;padding:0.5rem;">af</th>' +
             '<th style="text-align:center;padding:0.5rem;">cf/af</th>' +
+            '<th style="text-align:center;padding:0.5rem;">cf+af</th>' +
             '<th style="text-align:center;padding:0.5rem;">' +
                 '<input type="checkbox" id="master-check" style="margin:0;vertical-align:middle;" title="Select/unselect all" />' +
             '</th>' +
@@ -181,6 +183,9 @@ function renderCFTable(count) {
                     <button class="beep-btn" data-type="afcf" data-idx="${i}" title="Play alternating af/cf beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔊</button>
                 </td>` +
                 `<td style="text-align:center;">
+                    <button class="beep-btn offoff-btn" data-type="afcf-both" data-idx="${i}" title="Play af+cf to both sides" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;border:2px solid #bbb;cursor:pointer;">🔊</button>
+                </td>` +
+                `<td style="text-align:center;">
                     <input type="checkbox" class="row-check" data-idx="${i}" />
                 </td></tr>`;
         } else {
@@ -199,6 +204,9 @@ function renderCFTable(count) {
                 </td>` +
                 `<td style="text-align:center;">
                     <button class="beep-btn" data-type="cfaf" data-idx="${i}" title="Play alternating cf/af beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔊</button>
+                </td>` +
+                `<td style="text-align:center;">
+                    <button class="beep-btn offoff-btn" data-type="cfaf-both" data-idx="${i}" title="Play cf+af to both sides" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;border:2px solid #bbb;cursor:pointer;">🔊</button>
                 </td>` +
                 `<td style="text-align:center;">
                     <input type="checkbox" class="row-check" data-idx="${i}" />
@@ -258,6 +266,8 @@ function renderCFTable(count) {
     });
     // Add event listeners for beep buttons
     Array.from(container.querySelectorAll('.beep-btn')).forEach(btn => {
+    // Off/off button logic
+    const activeBoth = {};
         btn.addEventListener('click', function() {
             const idx = btn.dataset.idx !== undefined ? Number(btn.dataset.idx) : null;
             const type = btn.dataset.type;
@@ -272,6 +282,27 @@ function renderCFTable(count) {
             let reps = 3;
             const repInput = document.getElementById('beepReps');
             if (repInput && repInput.value) reps = Math.max(1, parseInt(repInput.value));
+            if (btn.classList.contains('offoff-btn')) {
+                if (!activeBoth[idx]) {
+                    btn.style.background = '#cfc';
+                    activeBoth[idx] = true;
+                    // Play af on AF side and cf on CI side, continuous until toggled off
+                    const ciSide = window.getStoredCISide();
+                    const afSide = ciSide === 'left' ? 'right' : 'left';
+                    // Play af and cf with duration <= 0 for continuous
+                    const stopCF = playBeep(cfs[idx], ciSide, { volume: cfVolume, duration: 0 });
+                    const stopAF = playBeep(afs[idx], afSide, { volume: afVolume, duration: 0 });
+                    btn._stopBoth = () => {
+                        stopCF && stopCF();
+                        stopAF && stopAF();
+                    };
+                } else {
+                    btn.style.background = '#f7fafd';
+                    activeBoth[idx] = false;
+                    if (btn._stopBoth) btn._stopBoth();
+                }
+                return;
+            }
             // Button logic matches heading and column order
             if (type === 'cf') {
                 playBeep(cfs[idx], ciSide, { volume: cfVolume });
@@ -287,8 +318,8 @@ function renderCFTable(count) {
                     } else {
                         playBeep(afs[idx], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
                     }
+                    setTimeout(playNext, duration * 1000 * (2 + (i % 2)));
                     i++;
-                    setTimeout(playNext, duration * 1000 * 2);
                 }
                 playNext();
             } else if (type === 'afcf') {
@@ -301,8 +332,8 @@ function renderCFTable(count) {
                     } else {
                         playBeep(cfs[idx], ciSide, { volume: cfVolume, duration });
                     }
+                    setTimeout(playNext, duration * 1000 * (2 + (i % 2)));
                     i++;
-                    setTimeout(playNext, duration * 1000 * 2);
                 }
                 playNext();
             } else if (type === 'cf-all' || type === 'af-all' || type === 'cfaf-all' || type === 'afcf-all') {
@@ -401,12 +432,30 @@ function playBeep(frequency, side, options = {}) {
         osc.connect(gain).connect(ctx.destination);
     }
     osc.start();
-    osc.stop(ctx.currentTime + duration);
+    let stopped = false;
+    let stopFn;
+    if (duration > 0) {
+        osc.stop(ctx.currentTime + duration);
+        stopFn = () => {
+            if (!stopped) {
+                osc.stop();
+                stopped = true;
+            }
+        };
+    } else {
+        stopFn = () => {
+            if (!stopped) {
+                osc.stop();
+                stopped = true;
+            }
+        };
+    }
     osc.onended = function() {
         osc.disconnect();
         gain.disconnect();
         if (pan) pan.disconnect();
     };
+    return stopFn;
 }
 
 document.addEventListener('DOMContentLoaded', function() {
