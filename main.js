@@ -125,18 +125,33 @@ function renderCFTable(count) {
     if (!container) return;
     const cfs = getStoredCFs(count);
     const afs = getStoredAFs(count);
+    const ciSide = window.getStoredCISide();
     let html = '<table class="main" style="margin:2px auto;border-collapse:collapse;">';
-    html += '<thead><tr>' +
-        '<th style="text-align:center;padding:0.5rem;">#</th>' +
-        '<th style="text-align:center;padding:0.5rem;" title="center frequency">cf</th>' +
-        '<th style="text-align:center;padding:0.5rem;" title="alignment frequency">af</th>' +
-        '<th style="text-align:center;padding:0.5rem;">cf</th>' +
-        '<th style="text-align:center;padding:0.5rem;">af</th>' +
-        '<th style="text-align:center;padding:0.5rem;">cf/af</th>' +
-        '<th style="text-align:center;padding:0.5rem;">' +
-            '<input type="checkbox" id="master-check" style="margin:0;vertical-align:middle;" title="Select/unselect all" />' +
-        '</th>' +
-        '</tr></thead><tbody>';
+    if (ciSide === 'right') {
+        html += '<thead><tr>' +
+            '<th style="text-align:center;padding:0.5rem;">#</th>' +
+            '<th style="text-align:center;padding:0.5rem;" title="alignment frequency">af</th>' +
+            '<th style="text-align:center;padding:0.5rem;" title="center frequency">cf</th>' +
+            '<th style="text-align:center;padding:0.5rem;">af</th>' +
+            '<th style="text-align:center;padding:0.5rem;">cf</th>' +
+            '<th style="text-align:center;padding:0.5rem;">af/cf</th>' +
+            '<th style="text-align:center;padding:0.5rem;">' +
+                '<input type="checkbox" id="master-check" style="margin:0;vertical-align:middle;" title="Select/unselect all" />' +
+            '</th>' +
+            '</tr></thead><tbody>';
+    } else {
+        html += '<thead><tr>' +
+            '<th style="text-align:center;padding:0.5rem;">#</th>' +
+            '<th style="text-align:center;padding:0.5rem;" title="center frequency">cf</th>' +
+            '<th style="text-align:center;padding:0.5rem;" title="alignment frequency">af</th>' +
+            '<th style="text-align:center;padding:0.5rem;">cf</th>' +
+            '<th style="text-align:center;padding:0.5rem;">af</th>' +
+            '<th style="text-align:center;padding:0.5rem;">cf/af</th>' +
+            '<th style="text-align:center;padding:0.5rem;">' +
+                '<input type="checkbox" id="master-check" style="margin:0;vertical-align:middle;" title="Select/unselect all" />' +
+            '</th>' +
+            '</tr></thead><tbody>';
+    }
     // Master checkbox event handler
     setTimeout(() => {
         const masterCheck = document.getElementById('master-check');
@@ -148,39 +163,76 @@ function renderCFTable(count) {
         }
     }, 0);
     for (let i = 0; i < cfs.length; i++) {
-        html += `<tr><td style="text-align:center;">${i+1}</td>` +
-            `<td style="text-align:center;">
-                <input type="number" step="1" min="0" value="${cfs[i]}" data-idx="${i}" class="cf-input" style="width:6em;margin:2px;padding:0.4em 0.5em;font-size:1.1em;border-radius:5px;border:1px solid #ccc;text-align:right;" />
-            </td>` +
-            `<td style="text-align:center;">
-                <input type="number" step="1" min="0" value="${afs[i]}" data-idx="${i}" class="af-input" style="width:6em;margin:2px;padding:0.4em 0.5em;font-size:1.1em;border-radius:5px;border:1px solid #ccc;text-align:right;" />
-            </td>` +
-            `<td style="text-align:center;">
-                <button class="beep-btn" data-type="cf" data-idx="${i}" title="Play cf beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔉</button>
-            </td>` +
-            `<td style="text-align:center;">
-                <button class="beep-btn" data-type="af" data-idx="${i}" title="Play af beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔉</button>
-            </td>` +
-            `<td style="text-align:center;">
-                <button class="beep-btn" data-type="cfaf" data-idx="${i}" title="Play alternating cf/af beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔊</button>
-            </td>` +
-            `<td style="text-align:center;">
-                <input type="checkbox" class="row-check" data-idx="${i}" />
-            </td></tr>`;
+        if (ciSide === 'right') {
+            html += `<tr><td style="text-align:center;">${i+1}</td>` +
+                `<td style="text-align:center;">
+                    <input type="number" step="1" min="0" value="${afs[i]}" data-idx="${i}" class="af-input" style="width:6em;margin:2px;padding:0.4em 0.5em;font-size:1.1em;border-radius:5px;border:1px solid #ccc;text-align:right;" />
+                </td>` +
+                `<td style="text-align:center;">
+                    <input type="number" step="1" min="0" value="${cfs[i]}" data-idx="${i}" class="cf-input" style="width:6em;margin:2px;padding:0.4em 0.5em;font-size:1.1em;border-radius:5px;border:1px solid #ccc;text-align:right;" />
+                </td>` +
+                `<td style="text-align:center;">
+                    <button class="beep-btn" data-type="af" data-idx="${i}" title="Play af beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔉</button>
+                </td>` +
+                `<td style="text-align:center;">
+                    <button class="beep-btn" data-type="cf" data-idx="${i}" title="Play cf beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔉</button>
+                </td>` +
+                `<td style="text-align:center;">
+                    <button class="beep-btn" data-type="afcf" data-idx="${i}" title="Play alternating af/cf beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔊</button>
+                </td>` +
+                `<td style="text-align:center;">
+                    <input type="checkbox" class="row-check" data-idx="${i}" />
+                </td></tr>`;
+        } else {
+            html += `<tr><td style="text-align:center;">${i+1}</td>` +
+                `<td style="text-align:center;">
+                    <input type="number" step="1" min="0" value="${cfs[i]}" data-idx="${i}" class="cf-input" style="width:6em;margin:2px;padding:0.4em 0.5em;font-size:1.1em;border-radius:5px;border:1px solid #ccc;text-align:right;" />
+                </td>` +
+                `<td style="text-align:center;">
+                    <input type="number" step="1" min="0" value="${afs[i]}" data-idx="${i}" class="af-input" style="width:6em;margin:2px;padding:0.4em 0.5em;font-size:1.1em;border-radius:5px;border:1px solid #ccc;text-align:right;" />
+                </td>` +
+                `<td style="text-align:center;">
+                    <button class="beep-btn" data-type="cf" data-idx="${i}" title="Play cf beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔉</button>
+                </td>` +
+                `<td style="text-align:center;">
+                    <button class="beep-btn" data-type="af" data-idx="${i}" title="Play af beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔉</button>
+                </td>` +
+                `<td style="text-align:center;">
+                    <button class="beep-btn" data-type="cfaf" data-idx="${i}" title="Play alternating cf/af beep" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#f7fafd;cursor:pointer;">🔊</button>
+                </td>` +
+                `<td style="text-align:center;">
+                    <input type="checkbox" class="row-check" data-idx="${i}" />
+                </td></tr>`;
+        }
     }
     // Add final row with only the three button columns
-    html += `<tr>` +
-        `<td></td><td></td><td></td>` +
-        `<td style="text-align:center;">
-            <button class="beep-btn" data-type="cf-all" title="Play checked cf beeps" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#e0eafc;cursor:pointer;">🔉</button>
-        </td>` +
-        `<td style="text-align:center;">
-            <button class="beep-btn" data-type="af-all" title="Play checked af beeps" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#e0eafc;cursor:pointer;">🔉</button>
-        </td>` +
-        `<td style="text-align:center;">
-            <button class="beep-btn" data-type="cfaf-all" title="Play checked cf/af beeps alternating" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#e0eafc;cursor:pointer;">🔊</button>
-        </td>` +
-        `<td></td></tr>`;
+    if (ciSide === 'right') {
+        html += `<tr>` +
+            `<td></td><td></td><td></td>` +
+            `<td style="text-align:center;">
+                <button class="beep-btn" data-type="af-all" title="Play checked af beeps" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#e0eafc;cursor:pointer;">🔉</button>
+            </td>` +
+            `<td style="text-align:center;">
+                <button class="beep-btn" data-type="cf-all" title="Play checked cf beeps" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#e0eafc;cursor:pointer;">🔉</button>
+            </td>` +
+            `<td style="text-align:center;">
+                <button class="beep-btn" data-type="afcf-all" title="Play checked af/cf beeps alternating" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#e0eafc;cursor:pointer;">🔊</button>
+            </td>` +
+            `<td></td></tr>`;
+    } else {
+        html += `<tr>` +
+            `<td></td><td></td><td></td>` +
+            `<td style="text-align:center;">
+                <button class="beep-btn" data-type="cf-all" title="Play checked cf beeps" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#e0eafc;cursor:pointer;">🔉</button>
+            </td>` +
+            `<td style="text-align:center;">
+                <button class="beep-btn" data-type="af-all" title="Play checked af beeps" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#e0eafc;cursor:pointer;">🔉</button>
+            </td>` +
+            `<td style="text-align:center;">
+                <button class="beep-btn" data-type="cfaf-all" title="Play checked cf/af beeps alternating" style="width:2em;height:2em;font-size:1.3em;border-radius:6px;border:1px solid #bbb;background:#e0eafc;cursor:pointer;">🔊</button>
+            </td>` +
+            `<td></td></tr>`;
+    }
     html += '</tbody></table>';
     container.innerHTML = html;
     // Add event listeners for cf inputs
@@ -220,12 +272,13 @@ function renderCFTable(count) {
             let reps = 3;
             const repInput = document.getElementById('beepReps');
             if (repInput && repInput.value) reps = Math.max(1, parseInt(repInput.value));
+            // Button logic matches heading and column order
             if (type === 'cf') {
                 playBeep(cfs[idx], ciSide, { volume: cfVolume });
             } else if (type === 'af') {
                 playBeep(afs[idx], ciSide === 'left' ? 'right' : 'left', { volume: afVolume });
             } else if (type === 'cfaf') {
-                // Alternating cf/af beep
+                // Alternating cf/af beep: play cf first (CI side), then af (AF side)
                 let i = 0;
                 function playNext() {
                     if (i >= reps * 2) return;
@@ -238,7 +291,21 @@ function renderCFTable(count) {
                     setTimeout(playNext, duration * 1000);
                 }
                 playNext();
-            } else if (type === 'cf-all' || type === 'af-all' || type === 'cfaf-all') {
+            } else if (type === 'afcf') {
+                // Alternating af/cf beep: play af first (AF side), then cf (CI side)
+                let i = 0;
+                function playNext() {
+                    if (i >= reps * 2) return;
+                    if (i % 2 === 0) {
+                        playBeep(afs[idx], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
+                    } else {
+                        playBeep(cfs[idx], ciSide, { volume: cfVolume, duration });
+                    }
+                    i++;
+                    setTimeout(playNext, duration * 1000);
+                }
+                playNext();
+            } else if (type === 'cf-all' || type === 'af-all' || type === 'cfaf-all' || type === 'afcf-all') {
                 // Get checked indices
                 const checked = Array.from(container.querySelectorAll('.row-check:checked')).map(cb => Number(cb.dataset.idx));
                 if (type === 'cf-all') {
@@ -246,7 +313,7 @@ function renderCFTable(count) {
                     let i = 0;
                     function playNext() {
                         if (i >= checked.length) return;
-                        playBeep(cfs[checked[i]], ciSide, { volume: cfVolume, duration });
+                        playBeep(cfs[checked[i]], 'left', { volume: cfVolume, duration });
                         i++;
                         setTimeout(playNext, duration * 1000 * 1.25);
                     }
@@ -256,32 +323,51 @@ function renderCFTable(count) {
                     let i = 0;
                     function playNext() {
                         if (i >= checked.length) return;
-                        playBeep(afs[checked[i]], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
+                        playBeep(afs[checked[i]], 'right', { volume: afVolume, duration });
                         i++;
                         setTimeout(playNext, duration * 1000 * 1.25);
                     }
                     playNext();
                 } else if (type === 'cfaf-all') {
-                    // Play checked cf frequencies in order, then checked af frequencies in order, with a gap between
+                    // Play checked cf frequencies in order, then checked af frequencies in order, with a gap between (left)
                     let i = 0;
                     function playCFNext() {
                         if (i >= checked.length) {
-                            // After cf sequence, wait for one beep duration, then start af sequence
                             setTimeout(playAFNext, duration * 1000 * 1.25);
                             return;
                         }
-                        playBeep(cfs[checked[i]], ciSide, { volume: cfVolume, duration });
+                        playBeep(cfs[checked[i]], 'left', { volume: cfVolume, duration });
                         i++;
                         setTimeout(playCFNext, duration * 1000 * 1.25);
                     }
                     let j = 0;
                     function playAFNext() {
                         if (j >= checked.length) return;
-                        playBeep(afs[checked[j]], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
+                        playBeep(afs[checked[j]], 'right', { volume: afVolume, duration });
                         j++;
                         setTimeout(playAFNext, duration * 1000 * 1.25);
                     }
                     playCFNext();
+                } else if (type === 'afcf-all') {
+                    // Play checked af frequencies in order, then checked cf frequencies in order, with a gap between (right)
+                    let i = 0;
+                    function playAFNext() {
+                        if (i >= checked.length) {
+                            setTimeout(playCFNext, duration * 1000 * 1.25);
+                            return;
+                        }
+                        playBeep(afs[checked[i]], 'right', { volume: afVolume, duration });
+                        i++;
+                        setTimeout(playAFNext, duration * 1000 * 1.25);
+                    }
+                    let j = 0;
+                    function playCFNext() {
+                        if (j >= checked.length) return;
+                        playBeep(cfs[checked[j]], 'left', { volume: cfVolume, duration });
+                        j++;
+                        setTimeout(playCFNext, duration * 1000 * 1.25);
+                    }
+                    playAFNext();
                 }
             }
         });
@@ -357,6 +443,10 @@ document.addEventListener('DOMContentLoaded', function() {
         ciSideSelect.value = window.getStoredCISide();
         ciSideSelect.addEventListener('change', function() {
             setStoredCISide(ciSideSelect.value);
+            const select = document.getElementById('electrodeCount');
+            if (select) {
+                renderCFTable(select.value);
+            }
         });
     }
 
