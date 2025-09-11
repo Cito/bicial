@@ -89,6 +89,19 @@ body {
 .table-container { margin: 1.25rem 0; }
 .placeholder { color: var(--muted); font-style: italic; text-align: center; padding: 2rem 0; }
 
+/* Table styles */
+.cf-table { width: 100%; border-collapse: collapse; }
+.cf-table th, .cf-table td { padding: .5rem; border-bottom: 1px solid var(--border); text-align: center; }
+.cf-table thead th { color: var(--muted); font-weight: 600; }
+.cf-table input[type="number"] { width: 9ch; text-align: right; }
+.cf-table .btn-icon { width: 2.2em; height: 2.2em; border-radius: 8px; border: 1px solid var(--border); background: #0a0f1d; color: var(--text); cursor: pointer; }
+.cf-table .btn-icon:hover { border-color: #2a3a5a; }
+.cf-table .btn-icon.is-on { background: rgba(96,165,250,0.2); border-color: #3b82f6; }
+.cf-table .lr { font-size: 1.05rem; }
+.cf-table .single { font-size: 1rem; }
+.cf-table .row-check { transform: translateY(1px); }
+.cf-table .adj { width: 140px; }
+
 .actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: .5rem; }
 .btn { padding: .6rem .9rem; font-weight: 600; cursor: pointer; }
 .btn:hover { border-color: #2a3a5a; }
