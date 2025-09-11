@@ -268,7 +268,7 @@ function renderCFTable(count) {
             const vaf = localStorage.getItem('afVolume');
             if (vaf) afVolume = parseInt(vaf, 10) / 100;
             let duration = localStorage.getItem('beepDuration');
-            duration = duration ? parseInt(duration, 10) / 1000 : 0.15;
+            duration = duration ? parseInt(duration, 10) / 1000 : 1;
             let reps = 3;
             const repInput = document.getElementById('beepReps');
             if (repInput && repInput.value) reps = Math.max(1, parseInt(repInput.value));
@@ -288,7 +288,7 @@ function renderCFTable(count) {
                         playBeep(afs[idx], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
                     }
                     i++;
-                    setTimeout(playNext, duration * 1000);
+                    setTimeout(playNext, duration * 1000 * 2);
                 }
                 playNext();
             } else if (type === 'afcf') {
@@ -302,7 +302,7 @@ function renderCFTable(count) {
                         playBeep(cfs[idx], ciSide, { volume: cfVolume, duration });
                     }
                     i++;
-                    setTimeout(playNext, duration * 1000);
+                    setTimeout(playNext, duration * 1000 * 2);
                 }
                 playNext();
             } else if (type === 'cf-all' || type === 'af-all' || type === 'cfaf-all' || type === 'afcf-all') {
@@ -315,7 +315,7 @@ function renderCFTable(count) {
                         if (i >= checked.length) return;
                         playBeep(cfs[checked[i]], ciSide, { volume: cfVolume, duration });
                         i++;
-                        setTimeout(playNext, duration * 1000 * 1.25);
+                        setTimeout(playNext, duration * 1000 * 2);
                     }
                     playNext();
                 } else if (type === 'af-all') {
@@ -325,7 +325,7 @@ function renderCFTable(count) {
                         if (i >= checked.length) return;
                         playBeep(afs[checked[i]], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
                         i++;
-                        setTimeout(playNext, duration * 1000 * 1.25);
+                        setTimeout(playNext, duration * 1000 * 2);
                     }
                     playNext();
                 } else if (type === 'cfaf-all') {
@@ -333,19 +333,19 @@ function renderCFTable(count) {
                     let i = 0;
                     function playCFNext() {
                         if (i >= checked.length) {
-                            setTimeout(playAFNext, duration * 1000 * 1.25);
+                            setTimeout(playAFNext, duration * 1000 * 2);
                             return;
                         }
                         playBeep(cfs[checked[i]], ciSide, { volume: cfVolume, duration });
                         i++;
-                        setTimeout(playCFNext, duration * 1000 * 1.25);
+                        setTimeout(playCFNext, duration * 1000 * 2);
                     }
                     let j = 0;
                     function playAFNext() {
                         if (j >= checked.length) return;
                         playBeep(afs[checked[j]], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
                         j++;
-                        setTimeout(playAFNext, duration * 1000 * 1.25);
+                        setTimeout(playAFNext, duration * 1000 * 2);
                     }
                     playCFNext();
                 } else if (type === 'afcf-all') {
@@ -353,19 +353,19 @@ function renderCFTable(count) {
                     let i = 0;
                     function playAFNext() {
                         if (i >= checked.length) {
-                            setTimeout(playCFNext, duration * 1000 * 1.25);
+                            setTimeout(playCFNext, duration * 1000 * 2);
                             return;
                         }
                         playBeep(afs[checked[i]], ciSide === 'left' ? 'right' : 'left', { volume: afVolume, duration });
                         i++;
-                        setTimeout(playAFNext, duration * 1000 * 1.25);
+                        setTimeout(playAFNext, duration * 1000 * 2);
                     }
                     let j = 0;
                     function playCFNext() {
                         if (j >= checked.length) return;
                         playBeep(cfs[checked[j]], ciSide, { volume: cfVolume, duration });
                         j++;
-                        setTimeout(playCFNext, duration * 1000 * 1.25);
+                        setTimeout(playCFNext, duration * 1000 * 2);
                     }
                     playAFNext();
                 }
@@ -379,7 +379,7 @@ function playBeep(frequency, side, options = {}) {
     let duration = options.duration;
     if (typeof duration !== 'number') {
         const stored = localStorage.getItem('beepDuration');
-        duration = stored ? parseInt(stored, 10) / 1000 : 0.15;
+        duration = stored ? parseInt(stored, 10) / 1000 : 1;
     }
     const type = options.type || 'sine'; // waveform
     const ctx = window.bicialAudioCtx || (window.bicialAudioCtx = new (window.AudioContext || window.webkitAudioContext)());
@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const beepInput = document.getElementById('beepDuration');
     if (beepInput) {
         const stored = localStorage.getItem('beepDuration');
-        beepInput.value = stored ? stored : '150';
+        beepInput.value = stored ? stored : '1000';
         beepInput.addEventListener('change', function() {
             localStorage.setItem('beepDuration', beepInput.value);
         });
