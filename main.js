@@ -182,8 +182,10 @@
     function renderTable() {
         const container = document.getElementById('cfTableContainer');
         if (!container) return;
-        const count = Number(localStorage.getItem(KEYS.electrodeCount) || '12');
-        const ciSide = localStorage.getItem(KEYS.ciSide) || 'right';
+    // stop any active L+R rows before re-render to avoid orphan audio
+    stopAllBoth();
+    const count = Number(localStorage.getItem(KEYS.electrodeCount) || '12');
+    const ciSide = localStorage.getItem(KEYS.ciSide) || 'R';
         const fL = getF(count, 'L');
         const fR = getF(count, 'R');
         const adjL = getAdj(count, 'L');
@@ -390,6 +392,81 @@
         };
     }
 
+    // ---- simultaneous L+R toggle ----
+    const bothPlayers = new Map(); // rowIndex -> { oscL, oscR, envL, envR, panL?, panR?, merger?, btn }
+    function startBoth(i, btn) {
+        const container = document.getElementById('cfTableContainer');
+        if (!container) return;
+        const ctx = getAudioCtx();
+        const freqL = getDisplayedFreq(container, 'L', i);
+        const freqR = getDisplayedFreq(container, 'R', i);
+        const gLVal = earGain('L', i);
+        const gRVal = earGain('R', i);
+        const now = ctx.currentTime;
+
+        const oscL = ctx.createOscillator(); oscL.type = 'sine'; oscL.frequency.setValueAtTime(freqL, now);
+        const envL = ctx.createGain(); envL.gain.setValueAtTime(0, now); envL.gain.linearRampToValueAtTime(gLVal, now + 0.02);
+        const panL = ctx.createStereoPanner ? ctx.createStereoPanner() : null; if (panL) panL.pan.value = -1;
+
+        const oscR = ctx.createOscillator(); oscR.type = 'sine'; oscR.frequency.setValueAtTime(freqR, now);
+        const envR = ctx.createGain(); envR.gain.setValueAtTime(0, now); envR.gain.linearRampToValueAtTime(gRVal, now + 0.02);
+        const panR = ctx.createStereoPanner ? ctx.createStereoPanner() : null; if (panR) panR.pan.value = 1;
+
+        let merger = null;
+        if (panL && panR) {
+            // modern path: panners to destination
+            oscL.connect(envL); envL.connect(panL); panL.connect(ctx.destination);
+            oscR.connect(envR); envR.connect(panR); panR.connect(ctx.destination);
+        } else {
+            // fallback: explicit channel routing
+            merger = ctx.createChannelMerger(2);
+            oscL.connect(envL); envL.connect(merger, 0, 0);
+            oscR.connect(envR); envR.connect(merger, 0, 1);
+            merger.connect(ctx.destination);
+        }
+
+        oscL.start(now); oscR.start(now);
+        btn.classList.add('is-on');
+        bothPlayers.set(i, { oscL, oscR, envL, envR, panL, panR, merger, btn });
+    }
+
+    function stopBoth(i, btnFromClick) {
+        const obj = bothPlayers.get(i);
+        if (!obj) return;
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+        try {
+            obj.envL.gain.cancelScheduledValues(now);
+            obj.envR.gain.cancelScheduledValues(now);
+            obj.envL.gain.setTargetAtTime(0, now, 0.02);
+            obj.envR.gain.setTargetAtTime(0, now, 0.02);
+        } catch {}
+        // stop oscillators shortly after ramp down using audio timeline (no JS timers)
+        try { obj.oscL.stop(now + 0.06); } catch {}
+        try { obj.oscR.stop(now + 0.06); } catch {}
+        const btn = btnFromClick || obj.btn;
+        let ended = 0;
+        function cleanup() {
+            ended++;
+            if (ended < 2) return;
+            try { obj.oscL.disconnect(); } catch {}
+            try { obj.oscR.disconnect(); } catch {}
+            try { obj.envL.disconnect(); } catch {}
+            try { obj.envR.disconnect(); } catch {}
+            try { obj.panL && obj.panL.disconnect(); } catch {}
+            try { obj.panR && obj.panR.disconnect(); } catch {}
+            try { obj.merger && obj.merger.disconnect(); } catch {}
+            if (btn) btn.classList.remove('is-on');
+            bothPlayers.delete(i);
+        }
+        try { obj.oscL.onended = cleanup; } catch {}
+        try { obj.oscR.onended = cleanup; } catch {}
+    }
+
+    function stopAllBoth() {
+        for (const [i] of bothPlayers) stopBoth(i);
+    }
+
     function onTableClick(e) {
         const btn = e.target.closest('button');
         if (!btn) return;
@@ -402,6 +479,10 @@
             const i = Number(btn.dataset.i);
             if (!Number.isFinite(i)) return;
             runAltSequence(btn, i);
+        } else if (act === 'both') {
+            const i = Number(btn.dataset.i);
+            if (!Number.isFinite(i)) return;
+            if (bothPlayers.has(i)) stopBoth(i, btn); else startBoth(i, btn);
         }
         // other actions will be implemented later
     }
