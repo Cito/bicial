@@ -296,6 +296,7 @@ a:focus-visible {
 .help {
   margin-top: 0.5rem;
 }
+/* vizView uses default .help styles, no fullscreen overlay */
 .help-content {
   padding: 0.75rem;
   border: 1px solid var(--border);
@@ -314,6 +315,11 @@ a:focus-visible {
   background: rgba(255, 255, 255, 0.05);
   padding: 0.1em 0.3em;
   border-radius: 4px;
+}
+
+/* Center the visualization title */
+#vizContent h2 {
+  text-align: center;
 }
 
 .site-footer {

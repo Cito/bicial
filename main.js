@@ -519,7 +519,9 @@
     // bottom batch row
     html +=
       "<tr>" +
-      '<td colspan="4"></td>' +
+      "<td></td>" +
+      '<td colspan="2"><button class="btn" id="btnVisualize" type="button" title="Visualize (U+AA5C)">&#xAA5C; <span>Visualize</span></button></td>' +
+      "<td></td>" +
       `<td><button class="btn-icon single" data-act="play-all" data-ear="L" title="Play checked left">🔉</button></td>` +
       `<td><button class="btn-icon single" data-act="play-all" data-ear="R" title="Play checked right">🔉</button></td>` +
       `<td><button class="btn-icon lr" data-act="alt-all" title="Alternate checked">🔊</button></td>` +
@@ -528,6 +530,12 @@
 
     html += "</tbody></table>";
     container.innerHTML = html;
+
+    // hook visualize button
+    const btnVisualize = container.querySelector("#btnVisualize");
+    if (btnVisualize) {
+      btnVisualize.addEventListener("click", showVisualization);
+    }
 
     // master checkbox in header
     const thead = container.querySelector("thead tr");
@@ -933,7 +941,9 @@
 
   document.addEventListener("keydown", (e) => {
     const help = document.getElementById("helpView");
+    const viz = document.getElementById("vizView");
     if (help && !help.classList.contains("hidden")) return;
+    if (viz && !viz.classList.contains("hidden")) return;
     const t = e.target;
     const tag = t && t.tagName ? t.tagName.toLowerCase() : "";
     const isEditable =
@@ -1099,34 +1109,83 @@
 
   // ---- Help view ----
   let readmeLoaded = false;
+  function hideOverlays() {
+    const app = document.getElementById("appView");
+    const help = document.getElementById("helpView");
+    const viz = document.getElementById("vizView");
+    const infoBtn = document.getElementById("btnHelp");
+    const closeBtn = document.getElementById("btnHelpCloseIcon");
+    if (help) {
+      help.classList.add("hidden");
+      help.setAttribute("aria-hidden", "true");
+    }
+    if (viz) {
+      viz.classList.add("hidden");
+      viz.setAttribute("aria-hidden", "true");
+    }
+    if (app) app.classList.remove("hidden");
+    if (closeBtn) closeBtn.classList.add("hidden");
+    if (infoBtn) infoBtn.classList.remove("hidden");
+  }
   async function showHelp() {
     // stop playing and timers so no dangling audio continues in help view
     stopAllBoth();
     cancelAllBatches();
     const app = document.getElementById("appView");
     const help = document.getElementById("helpView");
+    const viz = document.getElementById("vizView");
     const infoBtn = document.getElementById("btnHelp");
     const closeBtn = document.getElementById("btnHelpCloseIcon");
     if (!app || !help) return;
     app.classList.add("hidden");
     help.classList.remove("hidden");
     help.setAttribute("aria-hidden", "false");
+    if (viz) {
+      viz.classList.add("hidden");
+      viz.setAttribute("aria-hidden", "true");
+    }
     if (infoBtn) infoBtn.classList.add("hidden");
     if (closeBtn) closeBtn.classList.remove("hidden");
     if (!readmeLoaded) await loadReadme();
   }
 
   function hideHelp() {
+    hideOverlays();
+  }
+
+  // ---- Visualization view ----
+  function showVisualization() {
+    // stop audio/timers as with help
+    stopAllBoth();
+    cancelAllBatches();
     const app = document.getElementById("appView");
+    const viz = document.getElementById("vizView");
     const help = document.getElementById("helpView");
     const infoBtn = document.getElementById("btnHelp");
     const closeBtn = document.getElementById("btnHelpCloseIcon");
-    if (!app || !help) return;
-    help.classList.add("hidden");
-    help.setAttribute("aria-hidden", "true");
-    app.classList.remove("hidden");
-    if (closeBtn) closeBtn.classList.add("hidden");
-    if (infoBtn) infoBtn.classList.remove("hidden");
+    if (!app || !viz) return;
+    app.classList.add("hidden");
+    viz.classList.remove("hidden");
+    viz.setAttribute("aria-hidden", "false");
+    if (help) {
+      help.classList.add("hidden");
+      help.setAttribute("aria-hidden", "true");
+    }
+    if (infoBtn) infoBtn.classList.add("hidden");
+    if (closeBtn) closeBtn.classList.remove("hidden");
+    // Render visualization content
+    try {
+      if (window && typeof window.renderCochlea === "function") {
+        window.renderCochlea();
+        if (typeof window.placeAllElectrodeMarkers === "function") {
+          window.placeAllElectrodeMarkers();
+        }
+      }
+    } catch {}
+  }
+
+  function hideVisualization() {
+    hideOverlays();
   }
 
   async function loadReadme() {
