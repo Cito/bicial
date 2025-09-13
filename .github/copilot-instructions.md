@@ -44,8 +44,8 @@ The UI then renders a table with one row per electrode and the following columns
 - `L/R` – play button for alternating left/right ear beeps (number of reps controlled by global input)
 - `L+R` – toggle button for simultaneous left/right ear
 - `[check]` – checkbox to select this row for batch play, heading should be a master checkbox to set/unset all
-- `L vol +/-` – slider (−50 to +50) to adjust left ear volume for this row (relative to global volume)
-- `R vol +/-` – slider (−50 to +50) to adjust right ear volume for this row (relative to global volume)
+- `L vol ±` – slider (−50 to +50) to adjust left ear volume for this row (relative to global volume)
+- `R vol ±` – slider (−50 to +50) to adjust right ear volume for this row (relative to global volume)
 
 The table should also have a bottom row with batch control buttons to play checked rows sequentially.
 

@@ -100,12 +100,20 @@
         const volL = $('#volumeL');
         if (volL) {
             volL.value = localStorage.getItem(KEYS.volumeL) || '75';
-            volL.addEventListener('input', () => localStorage.setItem(KEYS.volumeL, volL.value));
+            volL.addEventListener('input', () => {
+                localStorage.setItem(KEYS.volumeL, volL.value);
+                // live-update any active L+R for left ear
+                updateActiveBothGainsForEar('L');
+            });
         }
         const volR = $('#volumeR');
         if (volR) {
             volR.value = localStorage.getItem(KEYS.volumeR) || '75';
-            volR.addEventListener('input', () => localStorage.setItem(KEYS.volumeR, volR.value));
+            volR.addEventListener('input', () => {
+                localStorage.setItem(KEYS.volumeR, volR.value);
+                // live-update any active L+R for right ear
+                updateActiveBothGainsForEar('R');
+            });
         }
         const dur = $('#beepDuration');
         if (dur) {
@@ -256,7 +264,7 @@
 
         const isCIRight = ciSide === 'R';
 
-    const head = ['#', 'L', 'R', 'L', 'R', 'L/R', 'L+R', '✓', 'f ±', 'L vol +/-', 'R vol +/-'];
+    const head = ['#', 'L', 'R', 'L', 'R', 'L/R', 'L+R', '✓', 'f ±', 'L vol ±', 'R vol ±'];
 
         let html = '<table class="cf-table"><thead><tr>' + head.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
         for (let i = 0; i < count; i++) {
@@ -370,6 +378,9 @@
                 }
                 setAdj(c, 'L', adjLeft);
                 setAdj(c, 'R', adjRight);
+                // live-update gain if L+R is active for this row (map displayed ear to actual channel)
+                const actualEar = (cir ? ear : (ear === 'L' ? 'R' : 'L'));
+                updateLiveGainFor(i, actualEar);
             });
         });
         container.querySelectorAll('.row-check').forEach(cb => {
@@ -428,6 +439,26 @@
         const factor = 1 + (adj / 50); // 0..2
         const g = Math.max(0, Math.min(1, base * factor));
         return g;
+    }
+
+    function updateLiveGainFor(rowIndex, ear) {
+        const obj = bothPlayers.get(rowIndex);
+        if (!obj) return;
+        const ctx = getAudioCtx();
+        const now = ctx.currentTime;
+        const newGain = earGain(ear, rowIndex);
+        try {
+            const env = ear === 'L' ? obj.envL : obj.envR;
+            if (!env) return;
+            env.gain.cancelScheduledValues(now);
+            env.gain.setTargetAtTime(newGain, now, 0.03);
+        } catch {}
+    }
+
+    function updateActiveBothGainsForEar(ear) {
+        for (const [rowIndex, obj] of bothPlayers) {
+            updateLiveGainFor(rowIndex, ear);
+        }
     }
 
     function playSingleBeep(ear, i) {
