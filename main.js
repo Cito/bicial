@@ -360,7 +360,7 @@
           `<td><button class="btn-icon single" data-act="play-all" data-ear="L" title="Play checked left">🔉</button></td>` +
           `<td><button class="btn-icon single" data-act="play-all" data-ear="R" title="Play checked right">🔉</button></td>` +
           `<td><button class="btn-icon lr" data-act="alt-all" title="Alternate checked">🔊</button></td>` +
-                    '<td colspan="3"></td>' +
+                    '<td colspan="4"></td>' +
         '</tr>';
 
         html += '</tbody></table>';
