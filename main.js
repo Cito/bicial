@@ -308,6 +308,8 @@
     cancelAllBatches();
     const count = Number(localStorage.getItem(KEYS.electrodeCount) || '12');
     const ciSide = localStorage.getItem(KEYS.ciSide) || 'R';
+        // reflect CI side in container for CSS-based styling of CI ear inputs
+        try { container.setAttribute('data-ci-side', ciSide); } catch {}
         const fL = getF(count, 'L');
         const fR = getF(count, 'R');
         const adjL = getAdj(count, 'L');

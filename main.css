@@ -105,6 +105,20 @@ a:focus-visible { outline: 2px solid var(--link-hover); outline-offset: 2px; bor
 .cf-table th, .cf-table td { padding: .5rem; border-bottom: 1px solid var(--border); text-align: center; }
 .cf-table thead th { color: var(--muted); font-weight: 600; }
 .cf-table input[type="number"] { width: 9ch; text-align: right; }
+/* Subtle background for frequency inputs; desaturated on CI side */
+.cf-table input.ear-input {
+    background: #FFEDD5; /* light orange */
+}
+#cfTableContainer[data-ci-side="L"] .cf-table input.ear-input[data-ear="L"],
+#cfTableContainer[data-ci-side="R"] .cf-table input.ear-input[data-ear="R"] {
+    background: #E2E8F0; /* slate-200 like, greyish blue */
+    color: black; /* dark text for contrast on light bg */
+}
+/* Keep focus visible */
+.cf-table input.ear-input:focus-visible {
+    outline: 2px solid rgba(96, 165, 250, 0.45);
+    outline-offset: 1px;
+}
 .cf-table .btn-icon { width: 2.2em; height: 2.2em; border-radius: 8px; border: 1px solid var(--border); background: #0a0f1d; color: var(--text); cursor: pointer; }
 .cf-table .btn-icon:hover { border-color: #2a3a5a; }
 .cf-table .btn-icon:disabled {
