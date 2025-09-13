@@ -193,8 +193,8 @@
     // theta increases from apex (0) to base (thetaApex).
     const x = freqToPlace(f); // 0..1 apex..base
 
-    // Calculate theta (wrong formula, since x is relative length, not angle)
-    const theta = x * thetaApex;
+    // Calculate theta from x (relative length from apex to base)
+    const theta = Math.log(1 + x * (1 / r0 - 1)) / b;
 
     const r = r0 * Math.exp(b * theta);
     // Spiral point before fitting transform
