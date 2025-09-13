@@ -38,6 +38,20 @@
 
     container.appendChild(canvas);
     wrap.appendChild(container);
+    // Explanatory note below the canvas
+    const p = document.createElement('p');
+    p.className = 'viz-note';
+  p.style.marginTop = '2rem';
+  p.style.marginLeft = '3rem';
+  p.style.marginRight = '3rem';
+  p.style.fontSize = '0.9em';
+    p.style.lineHeight = '1.4';
+  p.style.paddingTop = '0.25rem';
+  p.style.paddingLeft = '1rem';
+  p.style.paddingRight = '1rem';
+    p.textContent =
+      'This view shows a simplified cochlea with the CI electrode array. Blue markers indicate the positions from the Frequency Allocation Table (CI ear); orange markers show the positions aligned to your acoustic ear. These are usually very close, so the orange markers often overlap or fully cover the blue ones. Noticeable displacement (distance between blue and orange markers) may indicate an input error, a frequency misalignment, or a true mismatch that should be corrected in your Frequency Allocation Table.';
+    wrap.appendChild(p);
     return canvas;
   }
 
