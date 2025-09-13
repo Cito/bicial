@@ -1,61 +1,73 @@
 # Copilot instructions for the “bicial” project
 
-The title of the app is "Binaural CI Alignment". The project short name is "bicial". The subtitle is "Align the center frequencies of your cochlear implant with your other ear". It should be MIT licensed.
+Create a small, client‑only web app “Binaural CI Alignment” (short name: bicial) that helps users align CI center frequencies with their acoustic ear. License: MIT. Keep the UI clear and modern.
 
-This file describes the app’s purpose, functionality, UI structure, and technical constraints so Copilot can create the project from scratch.
+Quick start: Open `index.html` directly in a modern browser (local file mode works well), or serve the folder as static files (e.g., GitHub Pages).
 
-## Overview
-
-A small client‑only web app for binaural CI alignment for patients that have one acoustic ear and one CI implant ear. It helps compare/align cochlear implant (CI) center frequencies with acoustic alignment frequencies from natural hearing with the unimplanted ear.
-
-It is meant to be used with over-the-ear headphones that deliver the sound to the ear and CI individually by using stereo panning (left/right).
-
-No build tools, larger frameworks or backend. Lightweight, generally available CDN resources (Alpine, Bootstrap, Bulma, Tailwind) are OK, but less is more. Everything is plain HTML/CSS/JS and runs by opening `index.html` in a browser.
-
-However, the code should be clean, well structured and commented for maintainability.
-
-## Tech stack and constraints
-
-- HTML/CSS/JavaScript only (no frameworks)
-- Web Audio API for tone generation
-- LocalStorage for persistence (all user input should be persisted)
-- Must work when loaded as local file
-- No complex waveform design beyond simple tones (sine by default)
+## Tech and constraints
+- Plain HTML/CSS/JS (no frameworks, no build, no backend). Must run by opening `index.html` locally or from static hosting (e.g., GitHub Pages).
+- Web Audio API for tone generation (simple sine tones only), stereo panning for left/right.
+- Persist all user inputs to `localStorage`.
+- Code should be clean, readable, commented where helpful, and easily maintainable by human developers.
 
 ## Files
+- `index.html`: Page shell (header, footer, card), controls, table container, help overlay.
+- `main.css`: Basic layout/styles for a clean, modern look (card, table, controls, buttons).
+- `main.js`: All logic (state, render, audio, events, persistence, import/export, help).
+- `README.md`: User info (overview, usage, terms/disclaimer). Also used by in‑app Help.
+- `LICENSE`: MIT.
 
-- `index.html`: Static page shell containing controls (global settings) and a container for the dynamic table
-- `main.css`: Basic styling (card layout, table visuals)
-- `main.js`: All logic (rendering, events, audio, persistence)
-- `README.md`: Brief usage notes and license
+## Core UI and behavior
+- Header + footer around a centered “card”. Top row: segmented radio groups for CI side (`L`/`R`, default `R`) and electrode count (`12`/`16`/`22`).
+- Dynamic table: one row per electrode with columns:
+	- `#` index (1‑based)
+	- `L f`, `R f`: number inputs (Hz)
+	- `L`, `R`: single beep buttons
+	- `L/R`: alternating L then R beeps, repetitions controlled globally
+	- `L+R`: simultaneous play/stop toggle per row
+	- `✓`: row checkbox (with master checkbox in header)
+	- `f ±`: nudge buttons to change the non‑CI ear frequency by ±1 and ±10
+	- `L vol ±`, `R vol ±`: per‑row relative gain sliders (−50..+50) applied on top of global volume
+- Bottom batch row: buttons to play all checked rows sequentially (L‑only, R‑only, alternating L‑then‑R per repetition).
+- Below table: global beep duration (ms) and repetitions; global L/R volume sliders (0..100).
+- Actions: Export/Import settings (JSON), “Reset alignments”, and “Reset everything”.
+- Help: an ℹ button (and a footer link “info & terms”) opens an in‑page Help view rendering `README.md`. If `fetch` fails (e.g., when opened via `file:`), show a concise fallback message with a link to open the local `README.md` and a link to the GitHub repo. Close help with an `⨯` button.
 
-## Page layout
+## State, persistence, and rules
+- Persist top‑level settings: `ciSide` (`L`/`R`), `electrodeCount` (`12`/`16`/`22`), `volumeL`, `volumeR`, `beepDuration`, `beepReps`.
+- For each electrode count, persist arrays in `localStorage`:
+	- Frequencies per ear: `fL_<count>`, `fR_<count>` (default to log‑spaced 200..7500 Hz).
+	- Per‑row relative gains: `adjL_<count>`, `adjR_<count>` (range −50..+50, default 0).
+	- Selected rows set: `sel_<count>` (array of indices).
+- Editing the CI ear frequency mirrors that value to the other ear for the same row. Editing the non‑CI ear is independent.
+- Nudge controls always adjust the non‑CI ear.
 
-The page should have a modern, clean look with header, footer and a centered card containing the controls and the table with the electrode rows.
+## Export / Import
+- Export a JSON file with shape:
+	```json
+	{
+		"app": "bicial",
+		"version": 1,
+		"savedAt": "ISO-8601",
+		"settings": { ciSide, electrodeCount, volumeL, volumeR, beepDuration, beepReps },
+		"arrays": { "fL": {"12":[]...}, "fR":{}, "adjL":{}, "adjR":{}, "selected":{} }
+	}
+	```
+- Import reads this structure, writes to `localStorage`, updates controls, and re-renders.
 
-At the top of the page, there should be a selector for the number of electrode (12, 16, or 22). There should be also a selector for the CI side (L or R) with R preselected. When changing the frequencies for the CI side, the should also change the frequencies for the other side to match. These two input should be in one row.
+## Audio specifics
+- Web Audio API: sine `OscillatorNode` per ear with simple attack/release envelope (`GainNode`).
+- Stereo routing: use `StereoPannerNode` when available; otherwise, route with a `ChannelMergerNode`.
+- Live updates while `L+R` is playing:
+	- Global and per‑row volume changes smoothly adjust gains.
+	- Nudge changes the active ear’s oscillator frequency immediately.
+- Alternating sequence timing with `setTimeout`; guard against double‑starts and clean up timers.
+- Stop any playing audio and cancel timers before re-rendering or when opening Help.
 
-The UI then renders a table with one row per electrode and the following columns (headings):
-- `#` – electrode index (1-based)
-- `L f` – numeric editable integer input (Hz) for left ear frequency
-- `R f` – numeric editable integer input (Hz) for right ear frequency
-- `L` – play button for left ear (single beep)
-- `R` – play button for right ear (single beep)
-- `L/R` – play button for alternating left/right ear beeps (number of reps controlled by global input)
-- `L+R` – toggle button for simultaneous left/right ear
-- `[check]` – checkbox to select this row for batch play, heading should be a master checkbox to set/unset all
-- `f ±` – buttons to increase and decrease the CI-side frequency by 1 or 10 Hz
-- `L vol ±` – slider (−50 to +50) to adjust left ear volume for this row (relative to global volume)
-- `R vol ±` – slider (−50 to +50) to adjust right ear volume for this row (relative to global volume)
+## Resets
+- Reset alignments: keep CI side and global settings; mirror CI ear frequencies to the other ear for the current electrode count; clear per‑row gains and selections for that count; re-render.
+- Reset everything: clear all app keys in `localStorage`, stop audio, re‑init UI with defaults.
 
-The table should also have a bottom row with batch control buttons to play checked rows sequentially.
-
-Below the table there should be inputs for beep duration (ms), and number of repetitions (reps) for alternating beeps (again, both controls in one row).
-
-Also below the table there should be two global volume sliders (0 to 100) for L and R.
-
-And finally, buttons for exporting and importing the entire settings as JSON file.
-
-The buttons should have nice icons symbolizing their function. The toggle buttons should have a visual state (background color change).
-
-The play buttons can use the "loudspeaker with one wave" unicode char (&#128265;), the alternating and simultaneous play/toggle buttons should use "loudspeaker with three waves" unicode char (&#128266;).
+## Visual and accessibility
+- Keep it clear and modern; use iconography for buttons; show toggle state for active `L+R` and running batches.
+- Basic keyboard and ARIA where reasonable (labels for controls, titles/aria‑labels on buttons).
