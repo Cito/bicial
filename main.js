@@ -256,7 +256,7 @@
 
         const isCIRight = ciSide === 'R';
 
-        const head = ['#', 'L', 'R', 'L', 'R', 'L/R', 'L+R', '✓', 'L vol +/-', 'R vol +/-'];
+    const head = ['#', 'L', 'R', 'L', 'R', 'L/R', 'L+R', '✓', 'f ±', 'L vol +/-', 'R vol +/-'];
 
         let html = '<table class="cf-table"><thead><tr>' + head.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
         for (let i = 0; i < count; i++) {
@@ -275,9 +275,16 @@
             html += `<td><button class="btn-icon lr" data-act="alt" data-i="${i}" title="Alternate L/R">🔊</button></td>`;
             // simultaneous toggle L+R
             html += `<td><button class="btn-icon lr" data-act="both" data-i="${i}" title="Simultaneous L+R">🔊</button></td>`;
-            // selection checkbox
+                        // selection checkbox
             const checked = selected.has(i) ? 'checked' : '';
             html += `<td><input type="checkbox" class="row-check" data-i="${i}" ${checked}></td>`;
+                        // nudge non-CI ear frequency: -10, -1, +1, +10
+          html += `<td class=\"nudge-cell\">`
+              + `<button class=\"btn-icon nudge\" data-act=\"nudge\" data-i=\"${i}\" data-delta=\"-10\" title=\"Non-CI -10\">⏬</button>`
+              + `<button class=\"btn-icon nudge\" data-act=\"nudge\" data-i=\"${i}\" data-delta=\"-1\" title=\"Non-CI -1\">🔽</button>`
+              + `<button class=\"btn-icon nudge\" data-act=\"nudge\" data-i=\"${i}\" data-delta=\"1\" title=\"Non-CI +1\">🔼</button>`
+              + `<button class=\"btn-icon nudge\" data-act=\"nudge\" data-i=\"${i}\" data-delta=\"10\" title=\"Non-CI +10\">⏫</button>`
+              + `</td>`;
             // per-row volume adjustments
             const adjLeft = adjL[i];
             const adjRight = adjR[i];
@@ -286,13 +293,14 @@
             html += '</tr>';
         }
         // bottom batch row
-        html += '<tr>' +
+                html += '<tr>' +
           '<td></td><td></td><td></td>' +
           `<td><button class="btn-icon single" data-act="play-all" data-ear="L" title="Play checked left">🔉</button></td>` +
           `<td><button class="btn-icon single" data-act="play-all" data-ear="R" title="Play checked right">🔉</button></td>` +
           `<td><button class="btn-icon lr" data-act="alt-all" title="Alternate checked">🔊</button></td>` +
           '<td></td>' +
-          '<td></td>' + // keeps header alignment with checkbox column
+                    '<td></td>' + // keeps header alignment with checkbox column
+                    '<td></td>' + // keeps header alignment with nudge column
           '<td></td><td></td>' +
         '</tr>';
 
@@ -567,8 +575,42 @@
             startBatchSingle(ear, btn);
         } else if (act === 'alt-all') {
             startBatchAlt(btn);
+        } else if (act === 'nudge') {
+            const i = Number(btn.dataset.i);
+            const delta = Math.round(Number(btn.dataset.delta) || 0);
+            if (!Number.isFinite(i) || !delta) return;
+            nudgeNonCi(i, delta);
         }
         // other actions will be implemented later
+    }
+
+    function nudgeNonCi(rowIndex, delta) {
+        const container = document.getElementById('cfTableContainer');
+        if (!container) return;
+        const c = Number(localStorage.getItem(KEYS.electrodeCount) || '12');
+        const ciSide = localStorage.getItem(KEYS.ciSide) || 'R';
+        const targetEar = ciSide === 'R' ? 'L' : 'R'; // non-CI ear
+        const current = getDisplayedFreq(container, targetEar, rowIndex);
+        const next = Math.max(0, current + delta);
+        // update input UI
+        const inp = container.querySelector(`.ear-input[data-ear="${targetEar}"][data-i="${rowIndex}"]`);
+        if (inp) inp.value = String(next);
+        // update storage arrays
+        const left = getF(c, 'L');
+        const right = getF(c, 'R');
+        if (targetEar === 'L') left[rowIndex] = next; else right[rowIndex] = next;
+        setF(c, 'L', left);
+        setF(c, 'R', right);
+        // live update if simultaneous L+R is active for this row
+        const obj = bothPlayers.get(rowIndex);
+        if (obj) {
+            const ctx = getAudioCtx();
+            const now = ctx.currentTime;
+            try {
+                if (targetEar === 'L' && obj.oscL) obj.oscL.frequency.setValueAtTime(next, now);
+                if (targetEar === 'R' && obj.oscR) obj.oscR.frequency.setValueAtTime(next, now);
+            } catch {}
+        }
     }
 
     // ---- alternating L/R sequence ----
