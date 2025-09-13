@@ -1,2 +1,45 @@
-# bicial
-Binaural CI Alignment
+# bicial - Binaural CI Alignment
+
+This is a small single-page tool that allows SSD (single-sided deaf) patients with a CI (cochlear implant) in one ear to compare the configured center frequencies of the cochlear implant to frequencies played on the other non-CI ear.
+
+## Usage
+
+First, specify which side is the CI side, and how many electrodes the CI has (usually 12 for MED-EL, 16 for Advanced Bionics and 22 for Cochlear implants). Then enter the center frequencies for all electrodes in the column for the CI side. You can get the frequencies from your audiologists, they are stored in the FAT (frequency allocation table).
+
+Listen to the output of the tool using good over-the ear headphones that cover your accoustig ear and your CI. The "L" buttons should play a short sound with the respective frequncy on your left ear, the "R" buttons on the right ear. The L/R pluttons plays these alternating, and the L+R buttons simultaneously.
+
+As a first step, adjust the volume of the output on your computer. Usually, you will be also able to shift the stereo balance in case the CI side is not loud enough. Set up volumes that are good to hear but avoid setting them too loud because this could damage your hearing. You can also adjust these volumes globally using the sliders at the botton of the page, individually for the left and right side.
+
+Next, make sure that the CI side frequencies all appear equally loud. Normally you should not need to change much here, since the levels should have been already set like that by your audiologist. If needed, you can still adjust the volumes individually with the sliders on the right side. Then, also adjust the volume of the frequencies on the non-CI side so that the all appear equally loud. This may be needed, for instance, to compensate high-frequency hearing loss that is commonly caused by the natural aging process.
+
+When the volume levels are all well adjusted, try comparing the frequencies that you hear in both ears. You can adjust the frequencies you hear on your acoustic ear using the up and down buttons. The center fequencies on the CI side should not be modified.
+
+You can use the L and R buttons to hear a short beep on the respective ear, or you can use the L/R button to hear several alternating beeps. You can change the length of the beeps and number of repetitions at the bottom of the page. You can also use the L+R button to play both frequencies to the respective ear simultaneously, as an alternative way of frequency comparison. In addition to comparing single frequencies, you can also compare the intervals between the frequencies by selecting some electrodes using the checkboxes and then using the buttons at the bottom row to play them sequentially. The intervals on the left and right side should sound equal.
+
+## What is happening in the brain
+
+The brain compares sounds from both ears by sending each ear’s signals to both hemispheres, where specialized regions analyze frequency, loudness, and timing. The left and right auditory cortices exchange information, allowing subtle differences—such as fine variations in frequency or timing—to be detected and compared.
+
+This comparison is not perfectly symmetrical: the left hemisphere is generally more sensitive to rapid, detailed changes, while the right is better at processing slower, more melodic patterns. Factors like natural neural delays, the “right-ear advantage,” and individual hearing differences can make fine frequency judgments between ears more difficult.
+
+A striking example of binaural integration occurs with binaural beats: when two slightly different tones are played separately to each ear, the brain can generate the perception of a third, rhythmic beat corresponding to the frequency difference—even though this beat is absent in the actual sound waves. This effect arises in the brainstem, particularly in the superior olivary complex, where inputs from both ears converge. Binaural beats are most noticeable with tones below about 1000 Hz and frequency differences under ~35 Hz; larger differences are heard as two distinct tones rather than a fused beat. Occasionally, instead of a beat, listeners may perceive an illusory tone close to the average of the two frequencies.
+
+Binaural alignment is more demanding than monaural alignment because it requires coordinating signals that are first processed largely in parallel pathways on opposite sides of the brain. Communication between hemispheres occurs through the corpus callosum, which introduces limits and delays. In contrast, monaural comparisons occur within a single auditory pathway, enabling more direct and precise frequency analysis. This inter-hemispheric bottleneck makes binaural processing inherently more complex and prone to small errors. On top of that, auditory fatigue and habituation can reduce sensitivity over time, while the brain’s own “auto-correction” mechanisms may smooth over small discrepancies—sometimes improving coherence, but also occasionally masking fine differences that are actually present.
+
+## Terms and Disclaimer
+
+I am not a medical professional, and this tool must not be considered a substitute for professional medical advice, diagnosis, or treatment. The information and outputs provided are for personal and experimental use only.
+
+Due to the inherent limitations of binaural processing—including inter-hemispheric delays, habituation, fatigue effects, and the brain’s own corrective mechanisms—the alignment results produced by this tool may be inaccurate. As a consequence, adjustments to the frequency allocation table based on these results could potentially make hearing outcomes worse rather than better. For this reason, any use of the tool to modify configured frequencies should only be considered if the alignment results prove to be stable, reproducible, and reliable.
+
+Even in that case I cannot guarantee that the outputs will improve hearing outcomes, and I accept no responsibility or liability for any issues that may arise from using this tool. Users with cochlear implants should always consult qualified specialists—such as ENT physicians, audiologists, or clinicians at a cochlear implant center—for guidance regarding their individual situation. By using this tool, you acknowledge that you do so at your own risk and responsibility.
+
+## Open Source and Feedback
+
+This tool is provided as open-source software under the MIT license. I warmly welcome any kind of feedback—whether from cochlear implant users or healthcare professionals—to help improve its usefulness and reliability.
+
+This project includes code generated with AI tools, I have included instructions to recreate it in the project.
+
+## Credits
+
+I would like to express my gratitude to the staff at ENT clinics, CI rehabilitation centers, cochlear implant manufacturers, and the medical research community for their excellent and invaluable work, which is so essential for patients with hearing loss and has inspired me to develop this project.
