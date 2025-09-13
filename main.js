@@ -151,6 +151,12 @@
       btnImport.addEventListener("click", () => importFile.click());
     if (importFile) importFile.addEventListener("change", doImport);
 
+    // Copy/Paste FAT actions
+    const btnCopyFAT = document.getElementById("btnCopyFAT");
+    if (btnCopyFAT) btnCopyFAT.addEventListener("click", doCopyFAT);
+    const btnPasteFAT = document.getElementById("btnPasteFAT");
+    if (btnPasteFAT) btnPasteFAT.addEventListener("click", doPasteFAT);
+
     // Reset buttons
     const btnResetAlign = $("#btnResetAlign");
     if (btnResetAlign) btnResetAlign.addEventListener("click", resetAlignments);
@@ -272,6 +278,91 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  }
+
+  // ---- Copy/Paste FAT helpers ----
+  function getNonCIEar() {
+    const ciSide = localStorage.getItem(KEYS.ciSide) || "R";
+    return ciSide === "R" ? "L" : "R";
+  }
+  function getCIEar() {
+    const ciSide = localStorage.getItem(KEYS.ciSide) || "R";
+    return ciSide === "R" ? "R" : "L";
+  }
+  async function doCopyFAT() {
+    try {
+      const container = document.getElementById("fatContainer");
+      if (!container) return;
+      const count = Number(localStorage.getItem(KEYS.electrodeCount) || "12");
+      const ear = getNonCIEar();
+      const values = [];
+      for (let i = 0; i < count; i++) {
+        values.push(String(getDisplayedFreq(container, ear, i)));
+      }
+      const text = values.join("\n");
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      alert("Copy failed. Your browser may block clipboard access.");
+    }
+  }
+  function normalizePasteText(raw) {
+    if (!raw) return [];
+    let s = String(raw)
+      .replace(/[;\t\r ]+/g, "\n")
+      .replace(/\u00A0/g, "\n");
+    const lines = s
+      .split(/\n+/)
+      .map((x) => x.replace(/,/g, ".").trim())
+      .filter((x) => x.length > 0);
+    return lines;
+  }
+  async function doPasteFAT() {
+    try {
+      const container = document.getElementById("fatContainer");
+      if (!container) return;
+      const count = Number(localStorage.getItem(KEYS.electrodeCount) || "12");
+      const ear = getCIEar();
+      const text = await navigator.clipboard.readText();
+      const parts = normalizePasteText(text);
+      if (parts.length !== count) {
+        alert(`Paste failed: expected ${count} values, got ${parts.length}.`);
+        return;
+      }
+      const nums = parts.map((p) => {
+        const v = Math.round(Number(p));
+        return Number.isFinite(v) && v >= 0 ? v : 0;
+      });
+      const c = count;
+      const left = getF(c, "L");
+      const right = getF(c, "R");
+      for (let i = 0; i < c; i++) {
+        if (ear === "L") left[i] = nums[i];
+        else right[i] = nums[i];
+      }
+      setF(c, "L", left);
+      setF(c, "R", right);
+      for (let i = 0; i < c; i++) {
+        const inp = container.querySelector(
+          `.ear-input[data-ear="${ear}"][data-i="${i}"]`
+        );
+        if (inp) inp.value = String(nums[i]);
+      }
+      const ciIsLeft = ear === "L";
+      const ctx = getAudioCtx();
+      const now = ctx.currentTime;
+      for (const [rowIndex, obj] of bothPlayers) {
+        const v = nums[rowIndex];
+        if (!Number.isFinite(v)) continue;
+        try {
+          if (ciIsLeft && obj.oscL) obj.oscL.frequency.setValueAtTime(v, now);
+          if (!ciIsLeft && obj.oscR) obj.oscR.frequency.setValueAtTime(v, now);
+        } catch {}
+      }
+    } catch (err) {
+      alert(
+        "Paste failed. Your browser may block clipboard access or the data was invalid."
+      );
+    }
   }
 
   function doImport(e) {

@@ -155,58 +155,44 @@
               </label>
             </div>
 
-            <!-- Export/Import/Reset -->
+            <!-- Export/Import/Copy/Paste/Reset -->
             <div class="actions">
               <div class="actions-group">
                 <button
                   class="btn"
                   id="btnExport"
                   type="button"
-                  aria-label="Export settings"
+                  aria-label="Safe settings"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <rect x="3" y="17" width="18" height="4" rx="2" />
-                    <polyline points="7 11 12 16 17 11" />
-                    <line x1="12" y1="4" x2="12" y2="16" />
-                  </svg>
-                  <span>Export settings</span>
+                  📤
+                  <span>Load settings</span>
                 </button>
                 <button
                   class="btn"
                   id="btnImport"
                   type="button"
-                  aria-label="Import settings"
+                  aria-label="Load settings"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    aria-hidden="true"
-                    focusable="false"
-                  >
-                    <rect x="3" y="17" width="18" height="4" rx="2" />
-                    <polyline points="7 13 12 8 17 13" />
-                    <line x1="12" y1="8" x2="12" y2="20" />
-                  </svg>
-                  <span>Import settings</span>
+                  📥
+                  <span>Safe settings</span>
+                </button>
+                <button
+                  class="btn"
+                  id="btnPasteFAT"
+                  type="button"
+                  aria-label="Paste CI-side frequencies"
+                  title="Paste old FAT — paste CI-side frequencies (values separated by newline/space/semicolon)"
+                >
+                  📄 <span>Paste FAT</span>
+                </button>
+                <button
+                  class="btn"
+                  id="btnCopyFAT"
+                  type="button"
+                  aria-label="Copy non-CI frequencies"
+                  title="Copy new FAT — copy non-CI frequencies (one value per line)"
+                >
+                  📋 <span>Copy FAT</span>
                 </button>
                 <input
                   type="file"
@@ -267,7 +253,7 @@
                     <path d="M14 11v6" />
                     <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
                   </svg>
-                  <span>Reset everything</span>
+                  <span>Reset all</span>
                 </button>
               </div>
             </div>

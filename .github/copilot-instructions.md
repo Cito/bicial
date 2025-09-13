@@ -31,8 +31,8 @@ Quick start: Open `index.html` directly in a modern browser (local file mode wor
 	- `L vol ±`, `R vol ±`: per‑row relative gain sliders (−50..+50) applied on top of global volume
 - Bottom batch row: buttons to play all checked rows sequentially (L‑only, R‑only, alternating L‑then‑R per repetition).
 - Below table: global beep duration (ms) and repetitions; global L/R volume sliders (0..100).
-- Actions: Export/Import settings (JSON), “Reset alignments”, and “Reset everything”.
-- Help: an ℹ button (and a footer link “info & terms”) opens an in‑page Help view rendering `README.md`. If `fetch` fails (e.g., when opened via `file:`), show a concise fallback message with a link to open the local `README.md` and a link to the GitHub repo. Close help with an `⨯` button.
+- Actions: Export/Import settings (JSON), Copy new FAT, paste old FAT, Reset alignments, and Reset everything.
+- Help: an info button (and a footer link “info & terms”) opens an in‑page Help view rendering `README.md`. If `fetch` fails (e.g., when opened via `file:`), show a concise fallback message with a link to open the local `README.md` and a link to the GitHub repo. Close help with an `⨯` button.
  - Keyboard shortcuts: A/S/D/F nudge the non‑CI ear (−10/−1/+1/+10, left‑to‑right). J/K/L/; control playback (Left/Right/Alternate/Simultaneous). The `;` refers to the physical semicolon key (to the right of `L`). Shortcuts act on the last‑interacted row and are ignored while typing or when Help is open.
 
 ## State, persistence, and rules
