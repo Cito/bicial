@@ -19,6 +19,8 @@ You can use the L and R buttons to hear a short beep on the respective ear, or y
 Tip: After the first interaction with a row, you can control alignment via keyboard shortcuts (shown in the tooltips). `A`/`S`/`D`/`F` nudge the non‑CI ear frequency (−10/−1/+1/+10), and `J`/`K`/`L`/`;` play Left/Right/Alternate/Simultaneous.
 Tip: You can use the Copy/Paste buttons at the bottom to copy the frequencies from the old FAT and paste the frequencies of the new FAT, so that you don't need to retype everything.
 
+You can also show a visual representation of the frequencies to easily assess how well the frequencies align and detect possible input errors and misalignments.
+
 ## What is happening in the brain
 
 The brain compares sounds from both ears by sending each ear’s signals to both hemispheres, where specialized regions analyze frequency, loudness, and timing. The left and right auditory cortices exchange information, allowing subtle differences—such as fine variations in frequency or timing—to be detected and compared.
