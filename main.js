@@ -140,6 +140,12 @@
         const btnResetAll = $('#btnResetAll');
         if (btnResetAll) btnResetAll.addEventListener('click', resetEverything);
 
+        // Help button
+    const btnHelp = $('#btnHelp');
+    if (btnHelp) btnHelp.addEventListener('click', showHelp);
+    const btnHelpCloseIcon = $('#btnHelpCloseIcon');
+    if (btnHelpCloseIcon) btnHelpCloseIcon.addEventListener('click', hideHelp);
+
     // Initial table render
     renderTable();
     }
@@ -686,6 +692,115 @@
         const sel = [...getSelected(count)];
         sel.sort((a,b) => a - b);
         return { count, sel };
+    }
+
+    // ---- Help view ----
+    let readmeLoaded = false;
+    async function showHelp() {
+        // stop playing and timers so no dangling audio continues in help view
+        stopAllBoth();
+        cancelAllBatches();
+        const app = document.getElementById('appView');
+        const help = document.getElementById('helpView');
+        const infoBtn = document.getElementById('btnHelp');
+        const closeBtn = document.getElementById('btnHelpCloseIcon');
+        if (!app || !help) return;
+        app.classList.add('hidden');
+        help.classList.remove('hidden');
+        help.setAttribute('aria-hidden', 'false');
+        if (infoBtn) infoBtn.classList.add('hidden');
+        if (closeBtn) closeBtn.classList.remove('hidden');
+        if (!readmeLoaded) await loadReadme();
+    }
+
+    function hideHelp() {
+        const app = document.getElementById('appView');
+        const help = document.getElementById('helpView');
+        const infoBtn = document.getElementById('btnHelp');
+        const closeBtn = document.getElementById('btnHelpCloseIcon');
+        if (!app || !help) return;
+        help.classList.add('hidden');
+        help.setAttribute('aria-hidden', 'true');
+        app.classList.remove('hidden');
+        if (closeBtn) closeBtn.classList.add('hidden');
+        if (infoBtn) infoBtn.classList.remove('hidden');
+    }
+
+    async function loadReadme() {
+        const el = document.getElementById('helpContent');
+        if (!el) return;
+        const render = (text) => {
+            el.innerHTML = mdToHtml(text);
+            el.querySelectorAll('a[href]').forEach(a => { a.target = '_blank'; a.rel = 'noopener noreferrer'; });
+            readmeLoaded = true;
+        };
+        try {
+            const res = await fetch('README.md', { cache: 'no-cache' });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const text = await res.text();
+            render(text);
+        } catch (err) {
+            // CORS or network issue. Provide concise fallback with separate paragraphs and a tip.
+            el.innerHTML = `
+                <p>Could not fetch README (likely due to browser restrictions when opened locally).</p>
+                <p>You can open the <a href="README.md" target="_blank" rel="noopener">local file</a> in a new tab or view it <a href="https://github.com/cito/bicial" target="_blank" rel="noopener">on GitHub</a>.</p>
+                <p>Tip: serving this folder over HTTP (for example, using a simple local web server) avoids these restrictions.</p>
+            `;
+        }
+    }
+
+    function mdToHtml(src) {
+        // very small, safe-ish markdown renderer (headings, lists, paragraphs, code blocks, links, inline code)
+        const escapeHtml = s => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+        const lines = src.split(/\r?\n/);
+        let out = '';
+        let inCode = false;
+        let inList = false;
+        let para = [];
+        const flushPara = () => {
+            if (!para.length) return;
+            const text = para.join(' ');
+            out += `<p>${inline(text)}</p>`;
+            para = [];
+        };
+        const flushList = () => { if (inList) { out += '</ul>'; inList = false; } };
+        const inline = t => {
+            let s = escapeHtml(t);
+            // links
+            s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, a, b) => `<a href="${escapeHtml(b)}">${escapeHtml(a)}</a>`);
+            // inline code
+            s = s.replace(/`([^`]+)`/g, (m, a) => `<code>${a}</code>`);
+            return s;
+        };
+        for (let i = 0; i < lines.length; i++) {
+            const raw = lines[i];
+            if (raw.startsWith('```')) {
+                flushPara();
+                if (!inCode) { out += '<pre><code>'; inCode = true; }
+                else { out += '</code></pre>'; inCode = false; }
+                continue;
+            }
+            if (inCode) { out += escapeHtml(raw) + '\n'; continue; }
+            if (/^\s*$/.test(raw)) { flushPara(); flushList(); continue; }
+            const h = raw.match(/^(#{1,3})\s+(.*)$/);
+            if (h) {
+                flushPara(); flushList();
+                const level = h[1].length;
+                out += `<h${level}>${inline(h[2])}</h${level}>`;
+                continue;
+            }
+            const li = raw.match(/^[-*]\s+(.*)$/);
+            if (li) {
+                flushPara();
+                if (!inList) { out += '<ul>'; inList = true; }
+                out += `<li>${inline(li[1])}</li>`;
+                continue;
+            }
+            // paragraph line
+            para.push(raw.trim());
+        }
+        flushPara(); flushList(); if (inCode) out += '</code></pre>';
+        return out;
     }
 
     function startBatchSingle(ear, btn) {

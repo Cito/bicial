@@ -21,6 +21,9 @@
         <main class="site-main">
             <div class="container">
                 <section class="card">
+                    <button id="btnHelp" class="icon-button" title="Help / Info" aria-label="Help / Info">ℹ</button>
+                    <button id="btnHelpCloseIcon" class="icon-button hidden" title="Close help" aria-label="Close help">⨯</button>
+                    <div id="appView">
                     <!-- Top controls: CI side + electrode count in one row -->
                                 <div class="controls-row compact">
                                     <label class="control control-inline">
@@ -117,13 +120,21 @@
                                         </button>
                                     </div>
                     </div>
+                    </div>
+
+                    <!-- Help view (hidden by default) -->
+                    <div id="helpView" class="help hidden" aria-hidden="true">
+                        <div id="helpContent" class="help-content">
+                            <!-- README will be loaded here -->
+                        </div>
+                    </div>
                 </section>
             </div>
         </main>
 
         <footer class="site-footer">
             <div class="container">
-                <small>&copy; 2025 by Christoph Zwerschke</small>
+                <b>bicial</b> is a <a href="https://github.com/cito/bicial">GitHub project</a> &copy; 2025 by Christoph Zwerschke
             </div>
         </footer>
 
