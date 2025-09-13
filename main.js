@@ -134,6 +134,12 @@
     if (btnImport && importFile) btnImport.addEventListener('click', () => importFile.click());
     if (importFile) importFile.addEventListener('change', doImport);
 
+        // Reset buttons
+        const btnResetAlign = $('#btnResetAlign');
+        if (btnResetAlign) btnResetAlign.addEventListener('click', resetAlignments);
+        const btnResetAll = $('#btnResetAll');
+        if (btnResetAll) btnResetAll.addEventListener('click', resetEverything);
+
     // Initial table render
     renderTable();
     }
@@ -264,7 +270,7 @@
 
         const isCIRight = ciSide === 'R';
 
-    const head = ['#', 'L', 'R', 'L', 'R', 'L/R', 'L+R', '✓', 'f ±', 'L vol ±', 'R vol ±'];
+    const head = ['#', 'L f', 'R f', 'L', 'R', 'L/R', 'L+R', '✓', 'f ±', 'L vol ±', 'R vol ±'];
 
         let html = '<table class="cf-table"><thead><tr>' + head.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
         for (let i = 0; i < count; i++) {
@@ -746,6 +752,59 @@
             batchTimers[k] = null;
         });
     }
-})();
 
-// Note: the electrode table and audio logic will be added next.
+    // ---- reset logic ----
+    function keysForAllCounts() {
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (!k) continue;
+            if (
+                k === KEYS.ciSide ||
+                k === KEYS.electrodeCount ||
+                k === KEYS.volumeL ||
+                k === KEYS.volumeR ||
+                k === KEYS.beepDuration ||
+                k === KEYS.beepReps ||
+                k.startsWith(KEYS.fLPrefix) ||
+                k.startsWith(KEYS.fRPrefix) ||
+                k.startsWith(KEYS.adjLPrefix) ||
+                k.startsWith(KEYS.adjRPrefix) ||
+                k.startsWith(KEYS.selectedPrefix)
+            ) keys.push(k);
+        }
+        return keys;
+    }
+
+    function resetEverything() {
+        if (!confirm('Reset everything? This will clear all settings.')) return;
+        // stop audio and timers
+        stopAllBoth();
+        cancelAllBatches();
+        // Clear only our app keys from localStorage
+        const keys = keysForAllCounts();
+        keys.forEach(k => localStorage.removeItem(k));
+        // Re-init UI controls with defaults and re-render
+        initControls();
+    }
+
+    function resetAlignments() {
+        if (!confirm('Reset alignments? This keeps global settings and CI-side center frequencies, and mirrors them to the other ear.')) return;
+        stopAllBoth();
+        cancelAllBatches();
+        const ciSide = localStorage.getItem(KEYS.ciSide) || 'R';
+        const count = Number(localStorage.getItem(KEYS.electrodeCount) || '12');
+        // Get CI ear frequencies for current count
+        const fCi = getF(count, ciSide);
+        const other = ciSide === 'R' ? 'L' : 'R';
+        // Mirror to non-CI ear and persist
+        setF(count, other, [...fCi]);
+        // Reset per-row adjustments for both ears
+        setAdj(count, 'L', new Array(count).fill(0));
+        setAdj(count, 'R', new Array(count).fill(0));
+        // Clear selected rows
+        setSelected(count, new Set());
+        // Keep global volumes and timings as-is; refresh UI
+        renderTable();
+    }
+})();

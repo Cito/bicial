@@ -109,7 +109,8 @@ body {
 .cf-table .row-check { transform: translateY(1px); }
 .cf-table .adj { width: 140px; }
 
-.actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: .5rem; }
+.actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-top: .5rem; }
+.actions-group { display: inline-flex; gap: .75rem; flex-wrap: wrap; }
 .btn { padding: .6rem .9rem; font-weight: 600; cursor: pointer; }
 .btn:hover { border-color: #2a3a5a; }
 .btn svg { margin-right: .5rem; vertical-align: -2px; }
