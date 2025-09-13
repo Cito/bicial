@@ -1,6 +1,8 @@
 # bicial - Binaural CI Alignment
 
-This is a small single-page tool that allows SSD (single-sided deaf) patients with a CI (cochlear implant) in one ear to compare the configured center frequencies of the cochlear implant to frequencies played on the other non-CI ear.
+This is a small, single‑page tool for people with single‑sided deafness (SSD) who use a cochlear implant (CI) in one ear to compare the implant’s configured center frequencies with tones played to the acoustic (non‑CI) ear. This pitch‑based fitting can be considered an alternative to anatomy‑based fitting.
+
+To run the application, just open its [GitHub page](https://cito.github.io/bicial/) or [download](https://github.com/Cito/bicial/releases) the latest release and open the `index.html` file locally in your browser.
 
 ## Usage
 
