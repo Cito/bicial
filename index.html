@@ -1,143 +1,297 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Binaural CI Alignment — bicial</title>
-        <meta name="description" content="Align the center frequencies of your cochlear implant with your other ear.">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="main.css">
-    </head>
-    <body>
-        <header class="site-header">
-            <div class="container">
-                <h1 class="title">Binaural CI Alignment</h1>
-                <p class="subtitle">Align the center frequencies of your cochlear implant with your other ear</p>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Binaural CI Alignment — bicial</title>
+    <meta
+      name="description"
+      content="Align the center frequencies of your cochlear implant with your other ear."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="main.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <h1 class="title">Binaural CI Alignment</h1>
+        <p class="subtitle">
+          Align the center frequencies of your cochlear implant with your other
+          ear
+        </p>
+      </div>
+    </header>
+
+    <main class="site-main">
+      <div class="container">
+        <section class="card">
+          <button
+            id="btnHelp"
+            class="icon-button"
+            title="Help / Info"
+            aria-label="Help / Info"
+          >
+            ℹ
+          </button>
+          <button
+            id="btnHelpCloseIcon"
+            class="icon-button hidden"
+            title="Close help"
+            aria-label="Close help"
+          >
+            ⨯
+          </button>
+          <div id="appView">
+            <!-- Top controls: CI side + electrode count in one row -->
+            <div class="controls-row compact">
+              <label class="control control-inline">
+                <span class="label">CI side</span>
+                <div class="segmented" role="radiogroup" aria-label="CI side">
+                  <input type="radio" id="ciL" name="ciSide" value="L" />
+                  <label for="ciL">L</label>
+                  <input type="radio" id="ciR" name="ciSide" value="R" />
+                  <label for="ciR">R</label>
+                </div>
+              </label>
+              <label class="control control-inline">
+                <span class="label">Electrodes</span>
+                <div
+                  class="segmented"
+                  role="radiogroup"
+                  aria-label="Number of electrodes"
+                >
+                  <input
+                    type="radio"
+                    id="e12"
+                    name="electrodeCount"
+                    value="12"
+                  />
+                  <label for="e12">12</label>
+                  <input
+                    type="radio"
+                    id="e16"
+                    name="electrodeCount"
+                    value="16"
+                  />
+                  <label for="e16">16</label>
+                  <input
+                    type="radio"
+                    id="e22"
+                    name="electrodeCount"
+                    value="22"
+                  />
+                  <label for="e22">22</label>
+                </div>
+              </label>
             </div>
-        </header>
 
-        <main class="site-main">
-            <div class="container">
-                <section class="card">
-                    <button id="btnHelp" class="icon-button" title="Help / Info" aria-label="Help / Info">ℹ</button>
-                    <button id="btnHelpCloseIcon" class="icon-button hidden" title="Close help" aria-label="Close help">⨯</button>
-                    <div id="appView">
-                    <!-- Top controls: CI side + electrode count in one row -->
-                                <div class="controls-row compact">
-                                    <label class="control control-inline">
-                                        <span class="label">CI side</span>
-                                        <div class="segmented" role="radiogroup" aria-label="CI side">
-                                            <input type="radio" id="ciL" name="ciSide" value="L">
-                                            <label for="ciL">L</label>
-                                            <input type="radio" id="ciR" name="ciSide" value="R">
-                                            <label for="ciR">R</label>
-                                        </div>
-                                    </label>
-                                    <label class="control control-inline">
-                                        <span class="label">Electrodes</span>
-                                        <div class="segmented" role="radiogroup" aria-label="Number of electrodes">
-                                            <input type="radio" id="e12" name="electrodeCount" value="12">
-                                            <label for="e12">12</label>
-                                            <input type="radio" id="e16" name="electrodeCount" value="16">
-                                            <label for="e16">16</label>
-                                            <input type="radio" id="e22" name="electrodeCount" value="22">
-                                            <label for="e22">22</label>
-                                        </div>
-                                    </label>
-                                </div>
-
-                    <!-- Dynamic table container -->
-                    <div id="cfTableContainer" class="table-container">
-                        <div class="placeholder">The electrode table will appear here.</div>
-                    </div>
-
-                    <!-- Below-table global controls: duration + reps -->
-                    <div class="controls-row compact">
-                        <label class="control control-inline">
-                            <span class="label">Beep duration (ms)</span>
-                            <input id="beepDuration" class="input input-narrow" type="number" min="10" max="9999" step="10" value="500" inputmode="numeric">
-                        </label>
-                        <label class="control control-inline">
-                            <span class="label">Reps</span>
-                            <input id="beepReps" class="input input-narrow-3" type="number" min="1" max="999" step="1" value="3" inputmode="numeric">
-                        </label>
-                    </div>
-
-                    <!-- Global volume sliders (cf / af) -->
-                    <div class="controls-row">
-                        <label class="control">
-                            <span class="label">Vol L</span>
-                            <input id="volumeL" class="range" type="range" min="0" max="100" step="1" value="75">
-                        </label>
-                        <label class="control">
-                            <span class="label">Vol R</span>
-                            <input id="volumeR" class="range" type="range" min="0" max="100" step="1" value="75">
-                        </label>
-                    </div>
-
-                    <!-- Export/Import/Reset -->
-                                <div class="actions">
-                                    <div class="actions-group">
-                                        <button class="btn" id="btnExport" type="button" aria-label="Export settings">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                                            <rect x="3" y="17" width="18" height="4" rx="2"/>
-                                            <polyline points="7 11 12 16 17 11"/>
-                                            <line x1="12" y1="4" x2="12" y2="16"/>
-                                        </svg>
-                                        <span>Export settings</span>
-                                        </button>
-                                        <button class="btn" id="btnImport" type="button" aria-label="Import settings">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                                            <rect x="3" y="17" width="18" height="4" rx="2"/>
-                                            <polyline points="7 13 12 8 17 13"/>
-                                            <line x1="12" y1="8" x2="12" y2="20"/>
-                                        </svg>
-                                        <span>Import settings</span>
-                                        </button>
-                                        <input type="file" id="importFile" accept="application/json" hidden>
-                                    </div>
-                                    <div class="actions-group">
-                                        <button class="btn" id="btnResetAlign" type="button" aria-label="Reset alignments">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                                            <polyline points="23 4 23 10 17 10"/>
-                                            <polyline points="1 20 1 14 7 14"/>
-                                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/>
-                                            <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/>
-                                        </svg>
-                                        <span>Reset alignments</span>
-                                        </button>
-                                        <button class="btn" id="btnResetAll" type="button" aria-label="Reset everything">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                                            <polyline points="3 6 5 6 21 6"/>
-                                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                                            <path d="M10 11v6"/>
-                                            <path d="M14 11v6"/>
-                                            <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
-                                        </svg>
-                                        <span>Reset everything</span>
-                                        </button>
-                                    </div>
-                    </div>
-                    </div>
-
-                    <!-- Help view (hidden by default) -->
-                    <div id="helpView" class="help hidden" aria-hidden="true">
-                        <div id="helpContent" class="help-content">
-                            <!-- README will be loaded here -->
-                        </div>
-                    </div>
-                </section>
+            <!-- Dynamic table container -->
+            <div id="fatContainer" class="table-container">
+              <div class="placeholder">
+                The electrode table will appear here.
+              </div>
             </div>
-        </main>
 
-        <footer class="site-footer">
-            <div class="container">
-                <b>bicial</b> is a <a href="https://github.com/cito/bicial">GitHub project</a> &copy; 2025 by <a href="https://github.com/cito">Christoph Zwerschke</a> &mdash; see <a href="#" id="lnkInstructions">info &amp; terms</a>
+            <!-- Below-table global controls: duration + reps -->
+            <div class="controls-row compact">
+              <label class="control control-inline">
+                <span class="label">Beep duration (ms)</span>
+                <input
+                  id="beepDuration"
+                  class="input input-narrow"
+                  type="number"
+                  min="10"
+                  max="9999"
+                  step="10"
+                  value="500"
+                  inputmode="numeric"
+                />
+              </label>
+              <label class="control control-inline">
+                <span class="label">Reps</span>
+                <input
+                  id="beepReps"
+                  class="input input-narrow-3"
+                  type="number"
+                  min="1"
+                  max="999"
+                  step="1"
+                  value="3"
+                  inputmode="numeric"
+                />
+              </label>
             </div>
-        </footer>
 
-        <script src="main.js"></script>
-    </body>
+            <!-- Global volume sliders (L/ R) -->
+            <div class="controls-row">
+              <label class="control">
+                <span class="label">Vol L</span>
+                <input
+                  id="volumeL"
+                  class="range"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value="75"
+                />
+              </label>
+              <label class="control">
+                <span class="label">Vol R</span>
+                <input
+                  id="volumeR"
+                  class="range"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value="75"
+                />
+              </label>
+            </div>
+
+            <!-- Export/Import/Reset -->
+            <div class="actions">
+              <div class="actions-group">
+                <button
+                  class="btn"
+                  id="btnExport"
+                  type="button"
+                  aria-label="Export settings"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <rect x="3" y="17" width="18" height="4" rx="2" />
+                    <polyline points="7 11 12 16 17 11" />
+                    <line x1="12" y1="4" x2="12" y2="16" />
+                  </svg>
+                  <span>Export settings</span>
+                </button>
+                <button
+                  class="btn"
+                  id="btnImport"
+                  type="button"
+                  aria-label="Import settings"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <rect x="3" y="17" width="18" height="4" rx="2" />
+                    <polyline points="7 13 12 8 17 13" />
+                    <line x1="12" y1="8" x2="12" y2="20" />
+                  </svg>
+                  <span>Import settings</span>
+                </button>
+                <input
+                  type="file"
+                  id="importFile"
+                  accept="application/json"
+                  hidden
+                />
+              </div>
+              <div class="actions-group">
+                <button
+                  class="btn"
+                  id="btnResetAlign"
+                  type="button"
+                  aria-label="Reset alignments"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <polyline points="23 4 23 10 17 10" />
+                    <polyline points="1 20 1 14 7 14" />
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10" />
+                    <path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14" />
+                  </svg>
+                  <span>Reset alignments</span>
+                </button>
+                <button
+                  class="btn"
+                  id="btnResetAll"
+                  type="button"
+                  aria-label="Reset everything"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                    <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                  </svg>
+                  <span>Reset everything</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Help view (hidden by default) -->
+          <div id="helpView" class="help hidden" aria-hidden="true">
+            <div id="helpContent" class="help-content">
+              <!-- README will be loaded here -->
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <b>bicial</b> is a
+        <a href="https://github.com/cito/bicial">GitHub project</a> &copy; 2025
+        by <a href="https://github.com/cito">Christoph Zwerschke</a> &mdash; see
+        <a href="#" id="lnkInstructions">info &amp; terms</a>
+      </div>
+    </footer>
+
+    <script src="main.js"></script>
+  </body>
 </html>

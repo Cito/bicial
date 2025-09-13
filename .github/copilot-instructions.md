@@ -9,6 +9,7 @@ Quick start: Open `index.html` directly in a modern browser (local file mode wor
 - Web Audio API for tone generation (simple sine tones only), stereo panning for left/right.
 - Persist all user inputs to `localStorage`.
 - Code should be clean, readable, commented where helpful, and easily maintainable by human developers.
+- Code should be nicely formatted using a standard tool like Prettier, but this can happen after generation.
 
 ## Files
 - `index.html`: Page shell (header, footer, card), controls, table container, help overlay.
