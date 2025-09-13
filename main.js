@@ -12,6 +12,7 @@
         volumeR: 'volumeR',
         beepDuration: 'beepDuration',
         beepReps: 'beepReps',
+        semiKeyLabel: 'semiKeyLabel',
         // arrays per count
         fLPrefix: 'fL_',
         fRPrefix: 'fR_',
@@ -150,6 +151,43 @@
 
     // Initial table render
     renderTable();
+    // Try to detect the character mapped to the physical Semicolon key and update titles
+    initSemicolonLabel();
+    }
+
+    function getSemiLabel() {
+        const s = localStorage.getItem(KEYS.semiKeyLabel);
+        return (s && s.length) ? s : ';';
+    }
+    function formatSemiLabel(s) {
+        if (!s) return ';';
+        return s.toUpperCase();
+    }
+    function setSemiLabel(ch) {
+        if (!ch) return;
+        const c = String(ch);
+        try { localStorage.setItem(KEYS.semiKeyLabel, c); } catch {}
+    }
+    async function initSemicolonLabel() {
+        try {
+            if (navigator.keyboard && navigator.keyboard.getLayoutMap) {
+                const map = await navigator.keyboard.getLayoutMap();
+                const v = map && map.get('Semicolon');
+                if (v && typeof v === 'string' && v.length) {
+                    setSemiLabel(v);
+                    updateSimulTitles(v);
+                }
+            }
+        } catch {}
+    }
+    function updateSimulTitles(label) {
+        const lab = formatSemiLabel(label || getSemiLabel());
+        document.querySelectorAll('.cf-table button[data-act="both"]').forEach(btn => {
+            const base = 'Simultaneous L+R';
+            const cur = btn.getAttribute('title') || base;
+            const next = cur.replace(/\s*\([^)]*\)\s*$/, '');
+            btn.setAttribute('title', `${next} (${lab})`);
+        });
     }
 
     function doExport() {
@@ -278,7 +316,7 @@
 
         const isCIRight = ciSide === 'R';
 
-    const head = ['#', 'L f', 'R f', 'L', 'R', 'L/R', 'L+R', '✓', 'f ±', 'L vol ±', 'R vol ±'];
+    const head = ['#', 'L f', 'R f', 'f ±', 'L', 'R', 'L/R', 'L+R', '✓',  'L vol ±', 'R vol ±'];
 
         let html = '<table class="cf-table"><thead><tr>' + head.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
         for (let i = 0; i < count; i++) {
@@ -290,23 +328,23 @@
             html += `<td>${idx}</td>`;
             html += `<td><input type="number" class="ear-input" data-ear="L" data-i="${i}" value="${leftVal}" min="0" step="1"></td>`;
             html += `<td><input type="number" class="ear-input" data-ear="R" data-i="${i}" value="${rightVal}" min="0" step="1"></td>`;
+                        // nudge non-CI ear frequency: -10, -1, +1, +10
+            html += `<td class=\"nudge-cell\">`
+                            + `<button class=\"btn-icon nudge\" data-act=\"nudge\" data-i=\"${i}\" data-delta=\"-10\" title=\"Non-CI -10 (A)\">⏬</button>`
+                            + `<button class=\"btn-icon nudge\" data-act=\"nudge\" data-i=\"${i}\" data-delta=\"-1\" title=\"Non-CI -1 (S)\">🔽</button>`
+                            + `<button class=\"btn-icon nudge\" data-act=\"nudge\" data-i=\"${i}\" data-delta=\"1\" title=\"Non-CI +1 (D)\">🔼</button>`
+                            + `<button class=\"btn-icon nudge\" data-act=\"nudge\" data-i=\"${i}\" data-delta=\"10\" title=\"Non-CI +10 (F)\">⏫</button>`
+              + `</td>`;
             // play single left/right
-            html += `<td><button class="btn-icon single" data-act="play" data-ear="L" data-i="${i}" title="Play left">🔉</button></td>`;
-            html += `<td><button class="btn-icon single" data-act="play" data-ear="R" data-i="${i}" title="Play right">🔉</button></td>`;
+                        html += `<td><button class=\"btn-icon single\" data-act=\"play\" data-ear=\"L\" data-i=\"${i}\" title=\"Play left (J)\">🔉</button></td>`;
+                        html += `<td><button class=\"btn-icon single\" data-act=\"play\" data-ear=\"R\" data-i=\"${i}\" title=\"Play right (K)\">🔉</button></td>`;
             // alternating L/R
-            html += `<td><button class="btn-icon lr" data-act="alt" data-i="${i}" title="Alternate L/R">🔊</button></td>`;
-            // simultaneous toggle L+R
-            html += `<td><button class="btn-icon lr" data-act="both" data-i="${i}" title="Simultaneous L+R">🔊</button></td>`;
-                        // selection checkbox
+                        html += `<td><button class=\"btn-icon lr\" data-act=\"alt\" data-i=\"${i}\" title=\"Alternate L/R (L)\">🔊</button></td>`;
+            // simultaneous toggle L+R (title shows actual character for the physical semicolon key)
+                        html += `<td><button class=\"btn-icon lr\" data-act=\"both\" data-i=\"${i}\" title=\"Simultaneous L+R (${formatSemiLabel(getSemiLabel())})\">🔊</button></td>`;
+            // selection checkbox
             const checked = selected.has(i) ? 'checked' : '';
             html += `<td><input type="checkbox" class="row-check" data-i="${i}" ${checked}></td>`;
-                        // nudge non-CI ear frequency: -10, -1, +1, +10
-          html += `<td class=\"nudge-cell\">`
-              + `<button class=\"btn-icon nudge\" data-act=\"nudge\" data-i=\"${i}\" data-delta=\"-10\" title=\"Non-CI -10\">⏬</button>`
-              + `<button class=\"btn-icon nudge\" data-act=\"nudge\" data-i=\"${i}\" data-delta=\"-1\" title=\"Non-CI -1\">🔽</button>`
-              + `<button class=\"btn-icon nudge\" data-act=\"nudge\" data-i=\"${i}\" data-delta=\"1\" title=\"Non-CI +1\">🔼</button>`
-              + `<button class=\"btn-icon nudge\" data-act=\"nudge\" data-i=\"${i}\" data-delta=\"10\" title=\"Non-CI +10\">⏫</button>`
-              + `</td>`;
             // per-row volume adjustments
             const adjLeft = adjL[i];
             const adjRight = adjR[i];
@@ -316,14 +354,11 @@
         }
         // bottom batch row
                 html += '<tr>' +
-          '<td></td><td></td><td></td>' +
+                    '<td colspan="4"></td>' +
           `<td><button class="btn-icon single" data-act="play-all" data-ear="L" title="Play checked left">🔉</button></td>` +
           `<td><button class="btn-icon single" data-act="play-all" data-ear="R" title="Play checked right">🔉</button></td>` +
           `<td><button class="btn-icon lr" data-act="alt-all" title="Alternate checked">🔊</button></td>` +
-          '<td></td>' +
-                    '<td></td>' + // keeps header alignment with checkbox column
-                    '<td></td>' + // keeps header alignment with nudge column
-          '<td></td><td></td>' +
+                    '<td colspan="3"></td>' +
         '</tr>';
 
         html += '</tbody></table>';
@@ -333,7 +368,7 @@
         const thead = container.querySelector('thead tr');
         if (thead) {
             const ths = thead.querySelectorAll('th');
-            const checkThIndex = 7; // position of ✓ column in head array
+            const checkThIndex = head.indexOf('✓');
             if (ths[checkThIndex]) {
                 ths[checkThIndex].innerHTML = `<input type="checkbox" id="masterCheck">`;
                 const master = container.querySelector('#masterCheck');
@@ -354,7 +389,11 @@
 
         // input handlers
         container.querySelectorAll('.ear-input').forEach(inp => {
+            const setActive = () => { const i = Number(inp.dataset.i); if (Number.isFinite(i)) lastActiveRow = i; };
+            inp.addEventListener('focus', setActive);
+            inp.addEventListener('input', setActive);
             inp.addEventListener('change', () => {
+                setActive();
                 const i = Number(inp.dataset.i);
                 const ear = inp.dataset.ear; // 'L' or 'R'
                 const val = Math.max(0, Math.round(Number(inp.value) || 0));
@@ -376,7 +415,10 @@
             });
         });
         container.querySelectorAll('.adj').forEach(sl => {
+            const setActive = () => { const i = Number(sl.dataset.i); if (Number.isFinite(i)) lastActiveRow = i; };
+            sl.addEventListener('focus', setActive);
             sl.addEventListener('input', () => {
+                setActive();
                 const i = Number(sl.dataset.i);
                 const ear = sl.dataset.ear; // L or R as displayed
                 const v = Math.max(-50, Math.min(50, Math.round(Number(sl.value) || 0)));
@@ -598,10 +640,16 @@
         for (const [i] of bothPlayers) stopBoth(i);
     }
 
+    // Track last-active row for keyboard shortcuts and handle button actions
+    let lastActiveRow = null;
     function onTableClick(e) {
         const btn = e.target.closest('button');
         if (!btn) return;
         const act = btn.dataset.act;
+        if (btn.dataset.i != null) {
+            const idx = Number(btn.dataset.i);
+            if (Number.isFinite(idx)) lastActiveRow = idx;
+        }
         if (act === 'play') {
             const ear = btn.dataset.ear; // 'L' or 'R'
             const i = Number(btn.dataset.i);
@@ -628,6 +676,44 @@
         }
         // other actions will be implemented later
     }
+
+    // Global keyboard shortcuts (ignore when typing or help is open)
+    function blurIfNudgeFocused() {
+        const ae = document.activeElement;
+        if (ae && ae.classList && ae.classList.contains('nudge')) {
+            try { ae.blur(); } catch {}
+        }
+    }
+
+    document.addEventListener('keydown', (e) => {
+        const help = document.getElementById('helpView');
+        if (help && !help.classList.contains('hidden')) return;
+        const t = e.target;
+        const tag = t && t.tagName ? t.tagName.toLowerCase() : '';
+        const isEditable = tag === 'input' || tag === 'textarea' || tag === 'select' || (t && t.isContentEditable);
+        if (isEditable) return;
+        if (lastActiveRow == null) return;
+
+        const key = (e.key || '').toLowerCase();
+        const code = e.code || '';
+        // ASDF: nudge non-CI ear
+        if (key === 'a') { nudgeNonCi(lastActiveRow, -10); e.preventDefault(); blurIfNudgeFocused(); return; }
+        if (key === 's') { nudgeNonCi(lastActiveRow, -1); e.preventDefault(); blurIfNudgeFocused(); return; }
+        if (key === 'd') { nudgeNonCi(lastActiveRow, +1); e.preventDefault(); blurIfNudgeFocused(); return; }
+        if (key === 'f') { nudgeNonCi(lastActiveRow, +10); e.preventDefault(); blurIfNudgeFocused(); return; }
+        // J/K/L/Semicolon: speakers
+        if (key === 'j') { playSingleBeep('L', lastActiveRow); e.preventDefault(); blurIfNudgeFocused(); return; }
+        if (key === 'k') { playSingleBeep('R', lastActiveRow); e.preventDefault(); blurIfNudgeFocused(); return; }
+        if (key === 'l') { const altBtn = document.querySelector(`.cf-table button[data-act="alt"][data-i="${lastActiveRow}"]`); if (altBtn) { runAltSequence(altBtn, lastActiveRow); e.preventDefault(); blurIfNudgeFocused(); } return; }
+        if (code === 'Semicolon') {
+            // Update the label to reflect current layout mapping
+            const observed = (e.key && e.key.length) ? e.key : getSemiLabel();
+            if (observed && observed !== getSemiLabel()) { setSemiLabel(observed); updateSimulTitles(observed); }
+            const bothBtn = document.querySelector(`.cf-table button[data-act="both"][data-i="${lastActiveRow}"]`);
+            if (bothBtn) { if (bothPlayers.has(lastActiveRow)) stopBoth(lastActiveRow, bothBtn); else startBoth(lastActiveRow, bothBtn); e.preventDefault(); blurIfNudgeFocused(); }
+            return;
+        }
+    });
 
     function nudgeNonCi(rowIndex, delta) {
         const container = document.getElementById('cfTableContainer');

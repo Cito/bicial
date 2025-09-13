@@ -22,16 +22,17 @@ Quick start: Open `index.html` directly in a modern browser (local file mode wor
 - Dynamic table: one row per electrode with columns:
 	- `#` index (1‑based)
 	- `L f`, `R f`: number inputs (Hz)
+	- `f ±`: nudge buttons to change the non‑CI ear frequency by ±1 and ±10
 	- `L`, `R`: single beep buttons
 	- `L/R`: alternating L then R beeps, repetitions controlled globally
 	- `L+R`: simultaneous play/stop toggle per row
 	- `✓`: row checkbox (with master checkbox in header)
-	- `f ±`: nudge buttons to change the non‑CI ear frequency by ±1 and ±10
 	- `L vol ±`, `R vol ±`: per‑row relative gain sliders (−50..+50) applied on top of global volume
 - Bottom batch row: buttons to play all checked rows sequentially (L‑only, R‑only, alternating L‑then‑R per repetition).
 - Below table: global beep duration (ms) and repetitions; global L/R volume sliders (0..100).
 - Actions: Export/Import settings (JSON), “Reset alignments”, and “Reset everything”.
 - Help: an ℹ button (and a footer link “info & terms”) opens an in‑page Help view rendering `README.md`. If `fetch` fails (e.g., when opened via `file:`), show a concise fallback message with a link to open the local `README.md` and a link to the GitHub repo. Close help with an `⨯` button.
+ - Keyboard shortcuts: A/S/D/F nudge the non‑CI ear (−10/−1/+1/+10, left‑to‑right). J/K/L/; control playback (Left/Right/Alternate/Simultaneous). The `;` refers to the physical semicolon key (to the right of `L`). Shortcuts act on the last‑interacted row and are ignored while typing or when Help is open.
 
 ## State, persistence, and rules
 - Persist top‑level settings: `ciSide` (`L`/`R`), `electrodeCount` (`12`/`16`/`22`), `volumeL`, `volumeR`, `beepDuration`, `beepReps`.

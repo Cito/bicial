@@ -16,6 +16,8 @@ When the volume levels are all well adjusted, try comparing the frequencies that
 
 You can use the L and R buttons to hear a short beep on the respective ear, or you can use the L/R button to hear several alternating beeps. You can change the length of the beeps and number of repetitions at the bottom of the page. You can also use the L+R button to play both frequencies to the respective ear simultaneously, as an alternative way of frequency comparison. In addition to comparing single frequencies, you can also compare the intervals between the frequencies by selecting some electrodes using the checkboxes and then using the buttons at the bottom row to play them sequentially. The intervals on the left and right side should sound equal.
 
+Tip: After the first interaction with a row, you can control alignment via keyboard shortcuts (shown in the tooltips). `A`/`S`/`D`/`F` nudge the non‑CI ear frequency (−10/−1/+1/+10), and `J`/`K`/`L`/`;` play Left/Right/Alternate/Simultaneous.
+
 ## What is happening in the brain
 
 The brain compares sounds from both ears by sending each ear’s signals to both hemispheres, where specialized regions analyze frequency, loudness, and timing. The left and right auditory cortices exchange information, allowing subtle differences—such as fine variations in frequency or timing—to be detected and compared.
