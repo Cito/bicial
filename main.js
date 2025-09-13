@@ -822,9 +822,18 @@
   }
 
   // Global keyboard shortcuts (ignore when typing or help is open)
+
   function blurIfNudgeFocused() {
     const ae = document.activeElement;
-    if (ae && ae.classList && ae.classList.contains("nudge")) {
+    if (!ae) return;
+    // Only act on buttons inside the frequency alignment table
+    const inTable = typeof ae.closest === "function" && ae.closest(".fat");
+    if (
+      inTable &&
+      ae.tagName === "BUTTON" &&
+      ae.classList &&
+      ae.classList.contains("btn-icon")
+    ) {
       try {
         ae.blur();
       } catch {}
