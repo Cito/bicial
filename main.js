@@ -143,6 +143,8 @@
         // Help button
     const btnHelp = $('#btnHelp');
     if (btnHelp) btnHelp.addEventListener('click', showHelp);
+    const lnkInstructions = $('#lnkInstructions');
+    if (lnkInstructions) lnkInstructions.addEventListener('click', (e) => { e.preventDefault(); showHelp(); });
     const btnHelpCloseIcon = $('#btnHelpCloseIcon');
     if (btnHelpCloseIcon) btnHelpCloseIcon.addEventListener('click', hideHelp);
 
