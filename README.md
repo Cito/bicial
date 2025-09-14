@@ -10,6 +10,8 @@ First, specify which side is the CI side, and how many electrodes the CI has (us
 
 Listen to the output of the tool using good over‑ear headphones that cover your acoustic ear and your CI. The "L" buttons play a short sound with the respective frequency on your left ear; the "R" buttons on your right ear. The L/R button plays these alternating, and the L+R button plays both simultaneously.
 
+Important: Ensure your CI is set to a program that disables any filtering or automatic sound management. If the CI ear seems to drop out during simultaneous playback, it is likely that an automatic feature such as ambient or transient noise reduction has engaged on the CI sound processor. You can confirm by listening with the acoustic ear on the CI side of the headphones whether the tone is still being produced.
+
 As a first step, adjust the volume of the output on your computer. Usually, you can also shift the stereo balance if the CI side is not loud enough. Set volumes that are comfortable to hear but avoid setting them too loud, as this could damage your hearing. You can also adjust these volumes globally using the sliders at the bottom of the page, individually for the left and right side.
 
 Next, make sure that the CI‑side frequencies all appear equally loud. Normally you should not need to change much here, since the levels should already have been set like that by your audiologist. If needed, you can still adjust the volumes individually with the sliders on the right side. Then adjust the volume of the frequencies on the non‑CI side so that they all appear equally loud. This may be needed, for instance, to compensate high‑frequency hearing loss that is commonly caused by the natural aging process.
