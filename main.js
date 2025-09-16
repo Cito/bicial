@@ -301,6 +301,7 @@
       }
       const text = values.join("\n");
       await navigator.clipboard.writeText(text);
+      showToast('Copied new FAT (from non‑CI ear)');
     } catch (err) {
       alert("Copy failed. Your browser may block clipboard access.");
     }
@@ -358,6 +359,7 @@
           if (!ciIsLeft && obj.oscR) obj.oscR.frequency.setValueAtTime(v, now);
         } catch {}
       }
+      showToast('Pasted old FAT (to CI ear)');
     } catch (err) {
       alert(
         "Paste failed. Your browser may block clipboard access or the data was invalid."
@@ -1413,6 +1415,7 @@
     keys.forEach((k) => localStorage.removeItem(k));
     // Re-init UI controls with defaults and re-render
     initControls();
+    showToast('All settings have been reset');
   }
 
   function resetAlignments() {
@@ -1438,5 +1441,43 @@
     setSelected(count, new Set());
     // Keep global volumes and timings as-is; refresh UI
     renderTable();
+    showToast('Alignments have been reset');
+  }
+
+  // ---- toast utility ----
+  function showToast(message, opts = {}) {
+    try {
+      const host = document.getElementById('toastHost') || (() => {
+        const el = document.createElement('div');
+        el.id = 'toastHost';
+        el.className = 'toast-host';
+        document.body.appendChild(el);
+        return el;
+      })();
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.setAttribute('role', 'status');
+      t.setAttribute('aria-live', 'polite');
+      const icon = document.createElement('span');
+      icon.className = 'toast-icon';
+      icon.textContent = '✅';
+      const text = document.createElement('span');
+      text.className = 'toast-text';
+      text.textContent = String(message || 'Done');
+      t.appendChild(icon);
+      t.appendChild(text);
+      host.appendChild(t);
+      // Trigger animation
+      requestAnimationFrame(() => t.classList.add('show'));
+      const ttl = Number(opts.duration || 1800);
+      let closed = false;
+      const close = () => {
+        if (closed) return; closed = true;
+        t.classList.remove('show');
+        setTimeout(() => { try { host.removeChild(t); } catch {} }, 180);
+      };
+      t.addEventListener('click', close);
+      setTimeout(close, ttl);
+    } catch {}
   }
 })();
