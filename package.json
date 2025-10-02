@@ -1,0 +1,41 @@
+{
+  "name": "bicial",
+  "version": "1.0.0",
+  "description": "Binaural CI Alignment tool for cochlear implant users",
+  "main": "index.html",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cito/bicial.git"
+  },
+  "keywords": [
+    "cochlear-implant",
+    "hearing",
+    "accessibility",
+    "audio",
+    "binaural",
+    "ci-alignment",
+    "hearing-aid",
+    "medical-tool",
+    "web-audio",
+    "frequency-matching"
+  ],
+  "author": "Christoph Zwerschke <cito@online.de>",
+  "license": "MIT",
+  "homepage": "https://cito.github.io/bicial",
+  "bugs": {
+    "url": "https://github.com/cito/bicial/issues"
+  },
+  "scripts": {
+    "start": "open index.html || xdg-open index.html || start index.html",
+    "serve": "npx http-server -p 8000 -o || python -m http.server 8000 || php -S localhost:8000"
+  },
+  "files": [
+    "index.html",
+    "main.css",
+    "main.js",
+    "cochlea.js",
+    "CHANGELOG.md",
+    "README.md",
+    "LICENSE"
+  ]
+}

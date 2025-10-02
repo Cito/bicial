@@ -1,7 +1,9 @@
 *.bak
-*.json
 *.log
 *.tgz
+
+bicial-*.json
+*-settings.json
 
 .env
 .npm
