@@ -1,14 +1,21 @@
+# backups and logs
 *.bak
 *.log
 *.tgz
 
+# dependencies
+node_modules/
+
+# user data
 bicial-*.json
 *-settings.json
 
+# local caches
 .env
 .npm
 .temp
 .cache
 
+# IDE settings
 .vscode
 .vscode-test
