@@ -10,6 +10,12 @@ node_modules/
 bicial-*.json
 *-settings.json
 
+# spreadsheet data
+*.csv
+*.ods
+*.xls
+*.xlsx
+
 # local caches
 .env
 .npm
