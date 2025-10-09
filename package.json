@@ -1,6 +1,6 @@
 {
   "name": "bicial",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Binaural CI Alignment tool for cochlear implant users",
   "main": "index.html",
   "repository": {

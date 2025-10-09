@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2025-10-09
+
+### Changed
+
+- The center frequencies are now initialized with the actual default FATs
+  for the various manufacturers that I found in the literature,
+  instead of using a default log space distribution from 200..7500 Hz.
+
 ## [1.0.0] - 2025-10-01
 
 ### Added

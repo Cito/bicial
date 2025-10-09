@@ -28,16 +28,32 @@
     const prefix = side === "L" ? KEYS.fLPrefix : KEYS.fRPrefix;
     const key = prefix + count;
     const raw = localStorage.getItem(key);
+    let fat;
     if (raw) {
       try {
-        const arr = JSON.parse(raw);
-        if (Array.isArray(arr) && arr.length === Number(count)) return arr;
+        fat = JSON.parse(raw);
+        if (Array.isArray(fat) && fat.length === Number(count)) return fat;
       } catch {}
     }
-    // default log-spaced 200..7500 Hz
-    const arr = logSpace(200, 7500, Number(count));
-    localStorage.setItem(key, JSON.stringify(arr));
-    return arr;
+    switch (count) {
+      case 12: // MED-EL
+        fat = [120, 235, 384, 579, 836, 1175,
+          1624, 2222, 3019, 4084, 5507, 7410];
+        break;
+      case 16: // Advanced Bionics
+        fat = [333, 455, 540, 642, 762, 906, 1076, 1278,
+          1518, 1803, 2142, 2544, 3022, 3590, 4264, 6665];
+        break;
+      case 22: // Cochlear (ACE high bin)
+        fat = [250, 375, 500, 625, 750, 875, 1000, 1125, 1250, 1500, 1750,
+          2000, 2250, 2625, 3000, 3500, 4000, 4625, 5250, 6000, 6875, 8000];
+        break;
+      default: // default log-spaced 200..8000 Hz
+        fat = logSpace(200, 8000, Number(count));
+        break;
+    }
+    localStorage.setItem(key, JSON.stringify(fat));
+    return fat;
   }
   function setF(count, side, arr) {
     const prefix = side === "L" ? KEYS.fLPrefix : KEYS.fRPrefix;
