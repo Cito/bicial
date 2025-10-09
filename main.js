@@ -528,10 +528,8 @@
       const checked = selected.has(i) ? "checked" : "";
       html += `<td><input type="checkbox" class="row-check" data-i="${i}" ${checked}></td>`;
       // per-row volume adjustments
-      const adjLeft = adjL[i];
-      const adjRight = adjR[i];
-      html += `<td><input type="range" class="adj" min="-50" max="50" step="1" value="${adjLeft}" data-ear="L" data-i="${i}"></td>`;
-      html += `<td><input type="range" class="adj" min="-50" max="50" step="1" value="${adjRight}" data-ear="R" data-i="${i}"></td>`;
+      html += `<td><input type="range" class="adj" min="-50" max="50" step="1" value="${adjL[i]}" data-ear="L" data-i="${i}"></td>`;
+      html += `<td><input type="range" class="adj" min="-50" max="50" step="1" value="${adjR[i]}" data-ear="R" data-i="${i}"></td>`;
       html += "</tr>";
     }
     // bottom batch row
@@ -630,19 +628,10 @@
         );
         sl.value = v;
         const c = Number(localStorage.getItem(KEYS.electrodeCount) || "12");
-        const cir = (localStorage.getItem(KEYS.ciSide) || "R") === "R";
-        const adjLeft = getAdj(c, "L");
-        const adjRight = getAdj(c, "R");
-        if (ear === "L") {
-          (cir ? adjLeft : adjRight)[i] = v;
-        } else {
-          (cir ? adjRight : adjLeft)[i] = v;
-        }
-        setAdj(c, "L", adjLeft);
-        setAdj(c, "R", adjRight);
-        // live-update gain if L+R is active for this row (map displayed ear to actual channel)
-        const actualEar = cir ? ear : ear === "L" ? "R" : "L";
-        updateLiveGainFor(i, actualEar);
+        const adjArr = getAdj(c, ear);
+        adjArr[i] = v;
+        setAdj(c, ear, adjArr);
+        updateLiveGainFor(i, ear);
       });
     });
     container.querySelectorAll(".row-check").forEach((cb) => {
@@ -1410,6 +1399,7 @@
         k === KEYS.volumeR ||
         k === KEYS.beepDuration ||
         k === KEYS.beepReps ||
+        k === KEYS.semiKeyLabel ||
         k.startsWith(KEYS.fLPrefix) ||
         k.startsWith(KEYS.fRPrefix) ||
         k.startsWith(KEYS.adjLPrefix) ||
@@ -1429,9 +1419,8 @@
     // Clear only our app keys from localStorage
     const keys = keysForAllCounts();
     keys.forEach((k) => localStorage.removeItem(k));
-    // Re-init UI controls with defaults and re-render
-    initControls();
-    showToast('All settings have been reset');
+    // Reload to avoid duplicate listeners and fully re-init
+    location.reload();
   }
 
   function resetAlignments() {
