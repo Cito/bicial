@@ -168,6 +168,25 @@ a:focus-visible {
   padding: 2rem 0;
 }
 
+.audio-diag {
+  margin: -0.25rem 0 0.75rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+.audio-diag strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.audio-diag .warn {
+  color: #fbbf24;
+}
+.audio-diag code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 0.95em;
+}
+
 /* Table styles */
 .fat {
   width: 100%;

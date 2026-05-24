@@ -673,9 +673,54 @@
 
   // ---- audio: single beep L/R ----
   let audioCtx = null;
+
+  function updateAudioDiagnostics() {
+    const el = document.getElementById("audioDiag");
+    if (!el) return;
+
+    if (!audioCtx) {
+      el.innerHTML =
+        "Audio: <strong>not started</strong> (press any Play to initialize).";
+      return;
+    }
+
+    const sr = Number(audioCtx.sampleRate || 0);
+    if (!sr) {
+      el.textContent = "Audio: active.";
+      return;
+    }
+
+    const nyq = sr / 2;
+    el.innerHTML =
+      `Audio: <strong>${sr.toFixed(0)} Hz</strong> sample rate ` +
+      `(Nyquist ${nyq.toFixed(0)} Hz).`;
+  }
+
+  function warnIfNearNyquist(ctx, freq) {
+    const el = document.getElementById("audioDiag");
+    if (!el) return;
+    const sr = Number(ctx && ctx.sampleRate);
+    if (!sr || !freq) return;
+
+    // Start warning once we enter the steep filter/limit zone.
+    // 0.45*sr is a conservative threshold across resamplers/devices.
+    const threshold = 0.45 * sr;
+    if (freq < threshold) return;
+
+    const nyq = sr / 2;
+    el.innerHTML =
+      `Audio: <strong>${sr.toFixed(0)} Hz</strong> sample rate ` +
+      `(Nyquist ${nyq.toFixed(0)} Hz). ` +
+      `<span class="warn">⚠</span> ` +
+      `Tone <code>${Math.round(freq)} Hz</code> is near the device limit ` +
+      `and may be quieter/unstable due to filtering or resampling.`;
+  }
+
   function getAudioCtx() {
-    if (!audioCtx)
+    if (!audioCtx) {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      updateAudioDiagnostics();
+    }
     // resume if suspended (browser policy)
     if (audioCtx.state === "suspended") audioCtx.resume();
     return audioCtx;
@@ -726,6 +771,7 @@
     if (!container) return;
     const ctx = getAudioCtx();
     const freq = getDisplayedFreq(container, ear, i);
+    warnIfNearNyquist(ctx, freq);
     const durMs = Math.max(
       10,
       Number(localStorage.getItem(KEYS.beepDuration) || "500")
@@ -740,9 +786,15 @@
 
     // Envelope
     const env = ctx.createGain();
+    // Note: the waveform is always a sine; the "rectangle" you expect is the
+    // amplitude envelope. Use short fade-in/out with a flat hold to avoid clicks.
+    const attack = Math.min(0.01, Math.max(0.002, dur * 0.1));
+    const release = Math.min(0.015, Math.max(0.003, dur * 0.15));
+    const holdEnd = Math.max(now + attack, now + dur - release);
     env.gain.setValueAtTime(0, now);
-    env.gain.linearRampToValueAtTime(gainVal, now + 0.01);
-    env.gain.setTargetAtTime(0, now + Math.max(0.02, dur - 0.02), 0.01);
+    env.gain.linearRampToValueAtTime(gainVal, now + attack);
+    env.gain.setValueAtTime(gainVal, holdEnd);
+    env.gain.linearRampToValueAtTime(0, now + dur);
 
     if (ctx.createStereoPanner) {
       const panner = ctx.createStereoPanner();
@@ -782,6 +834,8 @@
     const ctx = getAudioCtx();
     const freqL = getDisplayedFreq(container, "L", i);
     const freqR = getDisplayedFreq(container, "R", i);
+    warnIfNearNyquist(ctx, freqL);
+    warnIfNearNyquist(ctx, freqR);
     const gLVal = earGain("L", i);
     const gRVal = earGain("R", i);
     const now = ctx.currentTime;
