@@ -25,7 +25,7 @@ Tip: You can use the Copy/Paste buttons at the bottom to copy the frequencies fr
 
 You can also show a visual representation of the frequencies to quickly assess how well they align and to detect possible input errors and misalignments.
 
-## What is happening in the brain
+## What Is Happening in the Brain
 
 The brain compares sounds from both ears by sending each ear’s signals to both hemispheres, where specialized regions analyze frequency, loudness, and timing. The left and right auditory cortices exchange information, allowing subtle differences—such as fine variations in frequency or timing—to be detected and compared.
 
@@ -45,9 +45,25 @@ Even in that case I cannot guarantee that the outputs will improve hearing outco
 
 ## Open Source and Feedback
 
-This tool is provided as open-source software under the MIT license. I warmly welcome any kind of feedback—whether from cochlear implant users or healthcare professionals—to help improve its usefulness and reliability.
+This tool is provided as open-source software under the MIT license. I warmly welcome any kind of feedback (whether from CI users or healthcare professionals) to help improve its usefulness and reliability.
 
-This project includes code generated with AI tools, I have included instructions to recreate it in the project.
+This project includes code generated with AI tools; I have included instructions to recreate it in the project.
+
+## Other Useful Open-Source Projects
+
+For users of cochlear implants, these projects may also be useful:
+
+- [CI Sound Balancing](https://www.ci-sound-balancing.org/): a comprehensive tool suite that also contains similar functionality
+- [Eira](https://www.eira-cast.org/): a project to build a device that allows single-sided CI users to stream to both ears
+- [Pico-ASHA](https://shermp.github.io/Pico-ASHA/): a project implementing the ASHA protocol on a Raspberry Pico W microcontroller
+
+## Community Forums
+
+Community forums can be useful for practical tips, personal experiences, and troubleshooting ideas from other CI users. Just keep in mind that forum posts reflect individual experiences and are not a substitute for professional medical advice.
+
+- [DCIG Forum](https://dcig-forum.de/forum/): for German-speaking users
+- [HearPeers forum](https://forum.hearpeers.com/): for MED-EL users
+- [HearingAidForum](https://forum.hearingtracker.com/c/cochlear-implants/): CI corum of the [HearingTracker](https://www.hearingtracker.com/) website
 
 ## Credits
 
